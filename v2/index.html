@@ -211,23 +211,24 @@
     font-size:9.5px;color:var(--ink-2);overflow:hidden;white-space:nowrap}
   .stack span.on{background:var(--ink);border-color:var(--ink);color:var(--ground)}
 
+  .version-two .inner{max-width:none}
   .version-two #s-home:checked ~ .wrap .scr[data-k="home"]{
-    display:grid;grid-template-columns:minmax(400px,.86fr) minmax(0,1.4fr);column-gap:16px;row-gap:20px;
-    grid-template-areas:"action action" "notes notes" "status trends" "activity activity" "metrics metrics" "context context" "fold fold" "footer footer"}
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:20px;
+    grid-template-areas:"action action" "notes notes" "status trends" "products activity" "metrics metrics" "context context" "fold fold" "footer footer"}
   .version-two #notes:checked ~ .wrap .scr[data-k="home"]{
-    grid-template-areas:"action action" "status trends" "activity activity" "metrics metrics" "context context" "fold fold" "footer footer"}
+    grid-template-areas:"action action" "status trends" "products activity" "metrics metrics" "context context" "fold fold" "footer footer"}
   .version-two .actionbar{grid-area:action;margin-bottom:0}
   .version-two .revisionnote{grid-area:notes;margin:-8px 0 0}
   .version-two .opsgrid{display:contents}
   .version-two .opsstatus{grid-area:status}
   .version-two .opsactivity{grid-area:activity}
   .version-two .home-trends{grid-area:trends;display:flex;flex-direction:column;min-width:0;margin-bottom:0}
-  .version-two .home-trends>.grid{flex:1;grid-template-columns:minmax(0,1.45fr) minmax(220px,.95fr)}
-  .version-two .home-trends>.grid>.card:last-child .li{grid-template-columns:16px minmax(0,1fr) 64px;column-gap:8px;row-gap:4px;padding:7px 0}
-  .version-two .home-trends>.grid>.card:last-child .li .i{grid-column:1;grid-row:1}
-  .version-two .home-trends>.grid>.card:last-child .li .n{grid-column:2;grid-row:1}
-  .version-two .home-trends>.grid>.card:last-child .li .v{grid-column:3;grid-row:1}
-  .version-two .home-trends>.grid>.card:last-child .li .track{grid-column:2/4;grid-row:2;width:100%;height:5px}
+  .version-two .home-trends>.grid{flex:1;grid-template-columns:minmax(0,1fr)}
+  .version-two .home-trends>.grid>.card{height:100%}
+  .version-two .home-products{grid-area:products;display:flex;flex-direction:column;min-width:0;margin-bottom:0}
+  .version-two .home-products>.card{display:grid;grid-template-rows:auto repeat(5,minmax(0,1fr));flex:1}
+  .version-two .home-products .li{grid-template-columns:16px minmax(0,1fr) minmax(120px,28%) 72px}
+  .version-two .home-products .track{width:100%}
   .version-two .home-metrics{grid-area:metrics;margin-bottom:0}
   .version-two .home-context{grid-area:context;margin-bottom:0}
   .version-two .scr[data-k="home"]>.fold{grid-area:fold;margin:4px 0 0}
@@ -488,7 +489,7 @@
 <div class="head">
 <div>
 <h1>Achilles Dashboard Demo — Version 2</h1>
-<p>A priority-led alternative: urgent work remains at the top, followed by Order status on the left and the client-priority sales trend with Top products on the right. Recent activity follows immediately below at full width. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
+<p>A priority-led alternative: urgent work remains at the top, followed by a full-width 2×2 operational grid. Order status and the client-priority Sales trend share the first row equally; Top products and Recent activity share the second row equally. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
 </div>
 <div class="hints">
 <a class="variantlink" href="/work/cogginspromo/">← Open Version 1</a>
@@ -617,7 +618,7 @@
 <strong>Client feedback → implemented decisions</strong>
 <ul>
 <li><q>I removed Action Required, but I do think we should have that included in some way. Just wonder if there is another option. Maybe we call that out at the top of the dashboard and it takes you to another page?</q> The removed task block became a compact top callout that opens a dedicated Action center.</li>
-<li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> They remain one operational sequence: the fixed Order status summary stays in the primary row, and the full-width Recent activity feed follows immediately below. The client-priority trend now occupies the top-right position.</li>
+<li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> The four priority blocks now form a balanced 2×2 grid: Order status and Sales trend above, Top products and Recent activity below. Each pair receives exactly half of the available width.</li>
 <li><q>The current activity feed also includes inventory receipts and customer registrations....looks like that was removed. Not really sure what is best but just pointing that out.</q> Those events were restored under All, while status tabs remain order-only.</li>
 <li><b>Interaction pass:</b> every Home block now has a defined role—charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
 </ul>
@@ -942,8 +943,8 @@
 <div class="zone home-trends">
 <div class="zhead">
 <span class="zn">4</span>
-<span class="zt">Trends and top products</span>
-<span class="zs">2/3 + 1/3</span>
+<span class="zt">Sales trend</span>
+<span class="zs">selected period</span>
 </div>
 <div class="grid g83">
 <div class="card">
@@ -1045,6 +1046,15 @@
 </i>previous period°</span>
 </div>
 </div>
+</div>
+<div class="note">The chart supports pointer hover and keyboard arrows: a crosshair and tooltip report the date, current value, and previous-period value. The title and date axis follow the selected period. Values for periods other than 30 days and all previous-period values remain marked ° because the backend does not currently calculate them. Top products is a 12-month dashboard snapshot; every row opens a panel populated from the selected row.</div>
+</div>
+<div class="zone home-products">
+<div class="zhead">
+<span class="zn">4</span>
+<span class="zt">Top products</span>
+<span class="zs">12-month dashboard snapshot</span>
+</div>
 <div class="card">
 <h4>Top products</h4>
 <label class="li" for="p-item">
@@ -1093,8 +1103,6 @@
 <span class="v num">$600</span>
 </label>
 </div>
-</div>
-<div class="note">The chart supports pointer hover and keyboard arrows: a crosshair and tooltip report the date, current value, and previous-period value. The title and date axis follow the selected period. Values for periods other than 30 days and all previous-period values remain marked ° because the backend does not currently calculate them. Top products is a 12-month dashboard snapshot; every row opens a panel populated from the selected row.</div>
 </div>
 <div class="zone home-context">
 <div class="zhead">
@@ -1254,7 +1262,7 @@
 <div class="fold">
 <span>below the fold · 1440×900</span>
 </div>
-<div class="note"><b>Version 2 recommendation:</b> the dashboard starts with the compact Action required entry point, then pairs the fixed Order status summary with the client-priority sales trend and Top products. Recent activity follows at full width, preserving its connection to order status without pushing the chart below the first screen. Period metrics and commercial context follow.</div>
+<div class="note"><b>Version 2 recommendation:</b> the dashboard starts with the compact Action required entry point, then uses a full-width 2×2 priority grid. Order status and Sales trend divide the first row equally; Top products and Recent activity divide the second row equally. Period metrics and commercial context follow below.</div>
 </section>
 <section class="scr" data-k="actions">
 <h2>Action center</h2>
@@ -3798,8 +3806,8 @@
           <b>Order status + Recent activity</b>
           <q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q>
           <span><b>Before:</b> the two blocks read as separate areas, and Order status inherited active styling from the activity filters, which made summary cards look clickable.</span>
-          <span><b>Fixed:</b> Order status stays in the primary row, while Recent activity follows immediately below as the next full-width block. Order status is static; Recent activity owns the filters and updates in place without a scroll jump. The top-right position is reserved for the client-priority trend.</span>
-          <span><b>Why:</b> the status summary explains the current distribution, while the adjacent feed provides the underlying events. They are related but have different interaction roles.</span>
+          <span><b>Fixed:</b> Order status and the client-priority Sales trend now divide the first row equally. Top products and Recent activity divide the second row equally. Order status is static; Recent activity owns the filters and updates in place without a scroll jump.</span>
+          <span><b>Why:</b> the balanced 2×2 grid keeps all four priority views visible at useful sizes while preserving their different interaction roles.</span>
         </li>
         <li>
           <b>Cross-functional activity</b>
@@ -3814,8 +3822,8 @@
       <h3>Why this order</h3>
       <ul>
         <li><b>First:</b> the compact Action required callout exposes urgent work and provides one clear route to the Action center.</li>
-        <li><b>Primary row:</b> Order status stays visible on the left, while the client-priority sales trend and Top products occupy the larger right column.</li>
-        <li><b>Immediately below:</b> Recent activity spans the full width. It remains the event-level explanation for the fixed status summary without displacing the trend from the first screen.</li>
+        <li><b>Primary row:</b> Order status and the client-priority Sales trend divide the available width exactly in half.</li>
+        <li><b>Second row:</b> Top products and Recent activity also divide the available width exactly in half, keeping both readable without leaving an oversized empty card.</li>
         <li><b>Interaction boundary:</b> Order status stays read-only; only the tabs inside Recent activity change the feed. This prevents a summary card from being mistaken for a navigation control.</li>
         <li><b>Then:</b> Period metrics provide the high-level outcome, followed by Customers, budgets, and campaigns as commercial context.</li>
         <li><b>Stable layout:</b> the activity feed uses a fixed-height region, so filtering does not move the page. All contains 13 mixed events; narrow filters explain when no additional activity remains.</li>
@@ -3826,7 +3834,7 @@
       <h3>What moves in from other screens</h3>
       <ul>
         <li>
-<b>Orders</b> status counters remain a compact two-column summary in the primary row. Recent activity follows directly below and remains the only status-filtered feed.</li>
+<b>Orders</b> status counters remain a compact two-column summary in the primary row. Recent activity occupies the lower-right half and remains the only status-filtered feed.</li>
         <li>
 <b>Inventory receipts and customer registrations</b> return to Recent activity alongside order updates.</li>
         <li>
@@ -3885,8 +3893,8 @@
       <h3>Grid and charts</h3>
       <ul>
         <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24–32px.</li>
-        <li>The primary row uses a compact 5/7 split: Order status on the left; Trends and Top products on the right with their internal 8/4 split. Recent activity then spans all 12 columns.</li>
-        <li>At 1440×900, the first screenful prioritizes actions, order distribution, and the client-priority sales trend. The event feed begins immediately below.</li>
+        <li>The priority area uses a full-width 2×2 grid with equal columns: Order status and Sales trend above; Top products and Recent activity below.</li>
+        <li>At 1440×900, the first screenful keeps all four priority views visible and balanced. Period metrics and commercial context begin below the grid.</li>
         <li>There is one full-size chart. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
         <li>There are no pie charts or secondary axes; multi-series comparisons belong in Reports.</li>
       </ul>
