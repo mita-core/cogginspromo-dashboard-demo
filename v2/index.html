@@ -213,10 +213,10 @@
 
   .version-two .inner{max-width:none}
   .version-two #s-home:checked ~ .wrap .scr[data-k="home"]{
-    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:20px;
-    grid-template-areas:"action action" "notes notes" "status trends" "products activity" "metrics metrics" "context context" "fold fold" "footer footer"}
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px;row-gap:20px;
+    grid-template-areas:"action action action action" "notes notes notes notes" "status trends trends trends" "products products activity activity" "metrics metrics metrics metrics" "context context context context" "fold fold fold fold" "footer footer footer footer"}
   .version-two #notes:checked ~ .wrap .scr[data-k="home"]{
-    grid-template-areas:"action action" "status trends" "products activity" "metrics metrics" "context context" "fold fold" "footer footer"}
+    grid-template-areas:"action action action action" "status trends trends trends" "products products activity activity" "metrics metrics metrics metrics" "context context context context" "fold fold fold fold" "footer footer footer footer"}
   .version-two .actionbar{grid-area:action;margin-bottom:0}
   .version-two .revisionnote{grid-area:notes;margin:-8px 0 0}
   .version-two .opsgrid{display:contents}
@@ -510,7 +510,7 @@
 <div class="head">
 <div>
 <h1>Achilles Dashboard Demo — Version 2</h1>
-<p>A priority-led alternative: urgent work remains at the top, followed by a full-width 2×2 operational grid. Order status and the client-priority Sales trend share the first row equally; Top products and Recent activity share the second row equally. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
+<p>A priority-led alternative: urgent work remains at the top, followed by a full-width operational grid. Order status uses one quarter of the first row, giving the client-priority Sales trend the remaining three quarters; Top products and Recent activity share the second row equally. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
 </div>
 <div class="hints">
 <a class="variantlink" href="/work/cogginspromo/">← Open Version 1</a>
@@ -639,7 +639,7 @@
 <strong>Client feedback → implemented decisions</strong>
 <ul>
 <li><q>I removed Action Required, but I do think we should have that included in some way. Just wonder if there is another option. Maybe we call that out at the top of the dashboard and it takes you to another page?</q> The removed task block became a compact top callout that opens a dedicated Action center.</li>
-<li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> The four priority blocks now form a balanced 2×2 grid: Order status and Sales trend above, Top products and Recent activity below. Each pair receives exactly half of the available width.</li>
+<li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> The four priority blocks now form a two-row grid: compact Order status and expanded Sales trend above, Top products and Recent activity below. The first row uses a 25/75 split; the second remains 50/50.</li>
 <li><q>The current activity feed also includes inventory receipts and customer registrations....looks like that was removed. Not really sure what is best but just pointing that out.</q> Those events were restored under All, while status tabs remain order-only.</li>
 <li><b>Interaction pass:</b> every Home block now has a defined role—charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
 </ul>
@@ -1305,7 +1305,7 @@
 <div class="fold">
 <span>below the fold · 1440×900</span>
 </div>
-<div class="note"><b>Version 2 recommendation:</b> the dashboard starts with the compact Action required entry point, then uses a full-width 2×2 priority grid. Order status and Sales trend divide the first row equally; Top products and Recent activity divide the second row equally. Period metrics and commercial context follow below.</div>
+<div class="note"><b>Version 2 recommendation:</b> the dashboard starts with the compact Action required entry point, then uses a full-width priority grid. Order status uses one quarter of the first row and Sales trend uses three quarters; Top products and Recent activity divide the second row equally. Period metrics and commercial context follow below.</div>
 </section>
 <section class="scr" data-k="actions">
 <h2>Action center</h2>
@@ -3849,8 +3849,8 @@
           <b>Order status + Recent activity</b>
           <q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q>
           <span><b>Before:</b> the two blocks read as separate areas, and Order status inherited active styling from the activity filters, which made summary cards look clickable.</span>
-          <span><b>Fixed:</b> Order status and the client-priority Sales trend now divide the first row equally. Top products and Recent activity divide the second row equally. Order status is static; Recent activity owns the filters and updates in place without a scroll jump.</span>
-          <span><b>Why:</b> the balanced 2×2 grid keeps all four priority views visible at useful sizes while preserving their different interaction roles.</span>
+          <span><b>Fixed:</b> Order status now uses one quarter of the first row, while the client-priority Sales trend uses the remaining three quarters. Top products and Recent activity divide the second row equally. Order status is static; Recent activity owns the filters and updates in place without a scroll jump.</span>
+          <span><b>Why:</b> the compact static summary no longer consumes the same space as the interactive chart, while all four priority views remain visible and preserve their different interaction roles.</span>
         </li>
         <li>
           <b>Cross-functional activity</b>
@@ -3865,7 +3865,7 @@
       <h3>Why this order</h3>
       <ul>
         <li><b>First:</b> the compact Action required callout exposes urgent work and provides one clear route to the Action center.</li>
-        <li><b>Primary row:</b> Order status and the client-priority Sales trend divide the available width exactly in half.</li>
+        <li><b>Primary row:</b> Order status uses one quarter of the available width; the client-priority Sales trend receives the remaining three quarters.</li>
         <li><b>Second row:</b> Top products and Recent activity also divide the available width exactly in half, keeping both readable without leaving an oversized empty card.</li>
         <li><b>Interaction boundary:</b> Order status stays read-only; only the tabs inside Recent activity change the feed. This prevents a summary card from being mistaken for a navigation control.</li>
         <li><b>Then:</b> Period metrics provide the high-level outcome, followed by Customers, budgets, and campaigns as commercial context.</li>
@@ -3936,8 +3936,8 @@
       <h3>Grid and charts</h3>
       <ul>
         <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24–32px.</li>
-        <li>The priority area uses a full-width 2×2 grid with equal columns: Order status and Sales trend above; Top products and Recent activity below.</li>
-        <li>At 1440×900, the first screenful keeps all four priority views visible and balanced. Period metrics and commercial context begin below the grid.</li>
+        <li>The priority area uses a four-column grid: Order status spans one column and Sales trend spans three; Top products and Recent activity each span two columns below.</li>
+        <li>At 1440×900, the first screenful prioritizes the interactive Sales trend while keeping the compact Order status and both secondary views visible. Period metrics and commercial context begin below the grid.</li>
         <li>There is one full-size grouped bar chart with horizontal navigation and a full-screen mode. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
         <li>There are no pie charts or secondary axes; multi-series comparisons belong in Reports.</li>
       </ul>
