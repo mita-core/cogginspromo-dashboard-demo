@@ -1,0 +1,4109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Achilles Dashboard Demo — Version 2</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<script>
+  (() => {
+    const storageKey = "achilles-dashboard-theme";
+    const root = document.documentElement;
+    let savedTheme = null;
+
+    try {
+      savedTheme = localStorage.getItem(storageKey);
+    } catch (error) {
+      // The demo still follows the system theme when storage is unavailable.
+    }
+
+    const systemPrefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    const initialTheme = savedTheme === "dark" || savedTheme === "light"
+      ? savedTheme
+      : systemPrefersDark ? "dark" : "light";
+
+    root.dataset.theme = initialTheme;
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("th");
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+
+      const applyTheme = (theme, persist = false) => {
+        const isDark = theme === "dark";
+        root.dataset.theme = theme;
+        toggle.checked = isDark;
+        toggle.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+        themeColor.content = isDark ? "#0d0d0d" : "#ffffff";
+
+        if (persist) {
+          try {
+            localStorage.setItem(storageKey, theme);
+          } catch (error) {
+            // Theme switching remains available for the current page view.
+          }
+        }
+      };
+
+      applyTheme(initialTheme);
+      toggle.addEventListener("change", () => applyTheme(toggle.checked ? "dark" : "light", true));
+    });
+  })();
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;display=swap">
+<style>
+  .wrap{
+    --ground:#ffffff; --paper:#f7f7f7; --surface:#ffffff; --surface-2:#eeeeee;
+    --line:#c7c7c7; --line-soft:#e0e0e0; --ink:#111111; --ink-2:#3f3f3f; --muted:#6f6f6f;
+    --fill:#d9d9d9; --fill-2:#ebebeb; --shadow:rgba(0,0,0,.16);
+  }
+  #th:checked ~ .wrap,
+  html[data-theme="dark"] .wrap{
+    --ground:#0d0d0d; --paper:#121212; --surface:#181818; --surface-2:#242424;
+    --line:#3d3d3d; --line-soft:#2b2b2b; --ink:#f4f4f4; --ink-2:#d0d0d0; --muted:#8d8d8d;
+    --fill:#333333; --fill-2:#242424; --shadow:rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box}
+  html{margin:0;background:#ffffff;color-scheme:light}
+  html[data-theme="dark"]{background:#0d0d0d;color-scheme:dark}
+  body{margin:0;background:inherit}
+  .st{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+  .wrap{display:block;background:var(--ground);color:var(--ink);min-height:100vh;
+    font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;padding:44px 28px 80px}
+  .inner{max-width:1560px;margin:0 auto}
+  label{cursor:pointer}
+  .st:focus-visible ~ .wrap{outline:2px solid var(--ink);outline-offset:-4px}
+  .num{font-variant-numeric:tabular-nums}
+
+  .head{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;
+    border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  .head h1{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+  .head p{margin:0;color:var(--muted);font-size:14px;max-width:64ch}
+  .hint{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+  .sw{width:40px;height:22px;border:1px solid var(--line);border-radius:99px;background:var(--surface-2);
+    position:relative;display:inline-block;flex:none;transition:background .16s ease}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+    background:var(--ink);transition:transform .16s ease,background .16s ease}
+  .hints{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .variantlink{font-size:13px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+  label[for="notes"] .sw{background:var(--ink);border-color:var(--ink)}
+  label[for="notes"] .sw::after{transform:translateX(18px);background:var(--ground)}
+  #notes:checked ~ .wrap label[for="notes"] .sw{background:var(--surface-2);border-color:var(--line)}
+  #notes:checked ~ .wrap label[for="notes"] .sw::after{transform:none;background:var(--ink)}
+  label[for="th"] .sw::after{transform:none}
+  #th:checked ~ .wrap label[for="th"] .sw{background:var(--ink);border-color:var(--ink)}
+  #th:checked ~ .wrap label[for="th"] .sw::after{transform:translateX(18px);background:var(--ground)}
+  #notes:checked ~ .wrap .note,#notes:checked ~ .wrap .zn,#notes:checked ~ .wrap .zs{display:none}
+
+  .app{border:1px solid var(--line);background:var(--paper);overflow:hidden;position:relative}
+  .appscroll{overflow-x:auto}
+  .appinner{min-width:1120px}
+  .top{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+  .logo{width:62px;height:28px;border:1px solid var(--line);display:grid;place-items:center;font-size:10px;letter-spacing:.1em;color:var(--muted);flex:none}
+  .find{height:30px;border:1px solid var(--line);background:var(--ground);display:block;line-height:28px;
+    padding:0 10px;font-size:13px;color:var(--muted);flex:1 1 200px;max-width:320px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .find:hover{background:var(--surface-2)}
+  .grow{flex:1}
+  .ctl{height:30px;border:1px solid var(--line);background:var(--ground);padding:0 10px;font-size:13px;
+    display:inline-flex;align-items:center;white-space:nowrap}
+  .ctl:hover{background:var(--surface-2)}
+  .grp{display:flex}
+  .grp .ctl+.ctl{border-left:0}
+  .thv::after{content:"light"}
+  #th:checked ~ .wrap .thv::after{content:"dark"}
+  .thbtn{margin-left:8px;gap:4px}
+  .rgl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:2px;align-self:center}
+
+  .cols{display:grid;grid-template-columns:196px 1fr}
+  .side{border-right:1px solid var(--line);background:var(--surface);padding:12px 10px;display:flex;flex-direction:column;gap:4px}
+  .nav{display:flex;align-items:center;gap:10px;border:1px solid transparent;padding:8px 10px;font-size:13.5px;color:var(--ink-2)}
+  .nav:hover{background:var(--surface-2)}
+  .nav .ic{flex:none}
+  .navset{margin-top:8px;border-top:1px solid var(--line-soft);padding-top:10px}
+  .collapse{display:flex;align-items:center;justify-content:center;height:32px;margin-top:8px;
+    border:1px solid var(--line);color:var(--ink-2);background:var(--ground)}
+  .collapse:hover{background:var(--surface-2)}
+  .collapse .ic{transition:transform .16s ease}
+  #collapse:checked ~ .wrap .cols{grid-template-columns:56px 1fr}
+  #collapse:checked ~ .wrap .side{padding:12px 8px;align-items:stretch}
+  #collapse:checked ~ .wrap .nav{justify-content:center;padding:8px 0}
+  #collapse:checked ~ .wrap .tx{display:none}
+  #collapse:checked ~ .wrap .sidefoot{display:none}
+  #collapse:checked ~ .wrap .navset{margin-top:auto}
+  #collapse:checked ~ .wrap .collapse .ic{transform:scaleX(-1)}
+  .sidefoot{margin-top:auto;border-top:1px solid var(--line-soft);padding-top:10px;font-size:11.5px;color:var(--muted)}
+  .main{padding:18px 20px 26px;min-height:960px}
+  .scr{display:none}
+
+  .zone{margin-bottom:20px}
+  .zhead{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+  .zn{width:19px;height:19px;background:var(--ink);color:var(--ground);font-size:11px;font-weight:700;display:grid;place-items:center;flex:none}
+  .zt{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .zs{font-size:12px;color:var(--muted)}
+  .note{font-size:12.5px;color:var(--muted);margin-top:8px;max-width:112ch}
+  .revisionnote{max-width:none;border-left:2px solid var(--line);padding:2px 0 2px 12px;margin:-8px 0 18px;order:0}
+  .revisionnote>strong{display:block;color:var(--ink);font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
+  .revisionnote ul{margin:0;padding-left:17px;display:grid;gap:6px}
+  .revisionnote li{padding-left:2px}
+  .revisionnote q{color:var(--ink-2);font-style:italic}
+
+  .grid{display:grid;gap:12px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g83{grid-template-columns:2fr 1fr}
+
+  .actionbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;
+    border:1px solid var(--line);border-left:4px solid var(--ink);background:var(--surface);color:var(--ink);
+    padding:11px 14px;margin-bottom:18px;order:0}
+  .actionbar:hover{background:var(--surface-2)}
+  .actioncopy{display:flex;align-items:baseline;gap:12px;min-width:0}
+  .actiontitle{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  .actionsummary{font-size:13px;opacity:.78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actiongo{font-size:12.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+  .opsgrid{display:grid;grid-template-columns:1fr;gap:12px;align-items:stretch;margin-bottom:20px;order:4}
+  .opszone{display:flex;flex-direction:column;min-width:0;margin-bottom:0}
+  .opsstatus .pipe{grid-template-columns:repeat(7,minmax(0,1fr))}
+  .opsstatus .seg{border-right:1px solid var(--line-soft);border-bottom:0;padding:11px 12px}
+  .opsstatus .seg:last-child{border-right:0}
+  .opsstatus .seg.total{grid-column:auto;border-right:2px solid var(--line);border-bottom:0}
+  .opsstatus .stackrow{display:grid;grid-template-columns:repeat(7,1fr);margin-top:8px}
+  .opsstatus .stackcap{text-align:right;padding-right:12px;margin:0}
+  .opsstatus .stack{display:flex;width:auto;grid-column:2/8}
+  .opsstatus .stacklegend{display:block;grid-column:2/8;margin-top:5px}
+  .opsactivity .card{display:flex;flex-direction:column;flex:1}
+  .opsactivity .tabs{gap:6px}
+  .opsactivity .tab{padding:4px 10px;font-size:12.5px}
+  .opsactivity .fr{grid-template-columns:1fr 130px 92px 52px;gap:10px;font-size:13px}
+  .activityrows{height:240px;overflow-y:auto;scrollbar-gutter:stable}
+  .activityempty{display:none;min-height:195px;padding:24px;align-items:center;justify-content:center;
+    flex-direction:column;text-align:center;color:var(--muted)}
+  .activityempty .emptyicon{width:20px;height:20px;margin-bottom:10px;color:var(--ink-2)}
+  .activityempty strong{font-size:13px;color:var(--ink);font-weight:600}
+  .activityempty span{font-size:12px;max-width:48ch;margin-top:3px}
+  .opsactivity .allbtn{margin-top:auto}
+
+  .actionqueue{margin-top:14px}
+  .actionqueue .task{min-height:150px}
+  .scr[data-k="home"] .zn{display:none}
+  .home-trends{order:1}
+  .home-metrics{order:2}
+  .home-context{order:3}
+  .scr[data-k="home"] > .fold{order:5}
+  .scr[data-k="home"] > .note:not(.revisionnote){order:6}
+  .scr[data-k="home"] > .revisionnote{order:0}
+
+  .pipe{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);background:var(--surface)}
+  .seg{border-right:1px solid var(--line-soft);padding:11px 12px;display:block}
+  .seg:last-child{border-right:0}
+  .seg.total{background:var(--surface-2);border-right:2px solid var(--line);cursor:default}
+  .segv{display:block;font-size:19px;font-weight:700;line-height:1.1}
+  .segc{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+  .seg.warn{border-bottom:3px solid var(--ink)}
+  .stackrow{display:grid;grid-template-columns:repeat(7,1fr);margin-top:8px;align-items:center}
+  .stackcap{font-size:10px;line-height:1.25;color:var(--muted);text-align:right;padding-right:12px;
+    text-transform:uppercase;letter-spacing:.05em}
+  .stack{grid-column:2/8;display:flex;gap:2px;height:17px}
+  .stacklegend{grid-column:2/8;font-size:10px;color:var(--muted);margin-top:5px}
+  .stacklegend b{display:inline-block;width:9px;height:9px;background:var(--ink);vertical-align:-1px;margin-right:5px}
+  .stack span{background:var(--fill);border:1px solid var(--line-soft);display:grid;place-items:center;
+    font-size:9.5px;color:var(--ink-2);overflow:hidden;white-space:nowrap}
+  .stack span.on{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+
+  .version-two #s-home:checked ~ .wrap .scr[data-k="home"]{
+    display:grid;grid-template-columns:minmax(400px,.86fr) minmax(0,1.4fr);column-gap:16px;row-gap:20px;
+    grid-template-areas:"action action" "notes notes" "status trends" "activity activity" "metrics metrics" "context context" "fold fold" "footer footer"}
+  .version-two #notes:checked ~ .wrap .scr[data-k="home"]{
+    grid-template-areas:"action action" "status trends" "activity activity" "metrics metrics" "context context" "fold fold" "footer footer"}
+  .version-two .actionbar{grid-area:action;margin-bottom:0}
+  .version-two .revisionnote{grid-area:notes;margin:-8px 0 0}
+  .version-two .opsgrid{display:contents}
+  .version-two .opsstatus{grid-area:status}
+  .version-two .opsactivity{grid-area:activity}
+  .version-two .home-trends{grid-area:trends;display:flex;flex-direction:column;min-width:0;margin-bottom:0}
+  .version-two .home-trends>.grid{flex:1;grid-template-columns:minmax(0,1.45fr) minmax(220px,.95fr)}
+  .version-two .home-trends>.grid>.card:last-child .li{grid-template-columns:16px minmax(0,1fr) 64px;column-gap:8px;row-gap:4px;padding:7px 0}
+  .version-two .home-trends>.grid>.card:last-child .li .i{grid-column:1;grid-row:1}
+  .version-two .home-trends>.grid>.card:last-child .li .n{grid-column:2;grid-row:1}
+  .version-two .home-trends>.grid>.card:last-child .li .v{grid-column:3;grid-row:1}
+  .version-two .home-trends>.grid>.card:last-child .li .track{grid-column:2/4;grid-row:2;width:100%;height:5px}
+  .version-two .home-metrics{grid-area:metrics;margin-bottom:0}
+  .version-two .home-context{grid-area:context;margin-bottom:0}
+  .version-two .scr[data-k="home"]>.fold{grid-area:fold;margin:4px 0 0}
+  .version-two .scr[data-k="home"]>.note:not(.revisionnote){grid-area:footer;margin-top:-12px}
+  .version-two .opsstatus .pipe{grid-template-columns:repeat(2,minmax(0,1fr));flex:1}
+  .version-two .opsstatus .seg{border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:12px}
+  .version-two .opsstatus .seg:nth-child(odd){border-right:0}
+  .version-two .opsstatus .seg.total{grid-column:1/-1;border-right:0;border-bottom:2px solid var(--line)}
+  .version-two .opsstatus .seg.warn{border-bottom:3px solid var(--ink)}
+  .version-two .opsstatus .stackrow{grid-template-columns:86px minmax(0,1fr)}
+  .version-two .opsstatus .stack{grid-column:2/3}
+  .version-two .opsstatus .stacklegend{grid-column:2/3}
+  .version-two .opsactivity .activityrows{height:276px}
+  .version-two .activityempty{min-height:231px}
+
+  .task{border:1px solid var(--ink);background:var(--surface);padding:13px;display:flex;flex-direction:column;gap:4px}
+  .task:hover{background:var(--surface-2)}
+  .task .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .task .v{font-size:26px;font-weight:700;line-height:1.05}
+  .task .s{font-size:12.5px;color:var(--ink-2)}
+  .task .go{margin-top:6px;font-size:12.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+  .card{border:1px solid var(--line);background:var(--surface);padding:13px}
+  .card h4{margin:0 0 10px;font-size:13px;font-weight:700}
+  .kpi .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .kpi .v{font-size:24px;font-weight:700;margin-top:2px;line-height:1.15}
+  .kpi .d{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-soft);margin-top:8px;padding-top:6px}
+  .spark{display:block;width:100%;height:24px;margin-top:6px}
+  .chart{display:block;width:100%;height:auto}
+  .chartcard{position:relative}
+  .chart[tabindex="0"]{cursor:default;outline:none}
+  .chart[tabindex="0"]:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  .chartoverlay{pointer-events:none}
+  .charttip{position:absolute;z-index:2;min-width:164px;padding:8px 10px;border:1px solid var(--ink);
+    background:var(--ground);color:var(--ink);font-size:11.5px;line-height:1.45;pointer-events:none;
+    opacity:0;transform:translate(-50%,-100%);transition:opacity .1s ease}
+  .charttip.on{opacity:1}
+  .charttip strong,.charttip span{display:block}
+  .charttip span{color:var(--muted)}
+  .charttip b{color:var(--ink);font-weight:600}
+  .kpi-link{cursor:pointer;position:relative}
+  .kpi-link:hover,.kpi-link:focus-visible{background:var(--surface-2);outline:none}
+  .hovertip{position:fixed;z-index:20;max-width:300px;padding:8px 10px;border:1px solid var(--ink);
+    background:var(--surface);color:var(--ink);font:11.5px/1.4 "Archivo",system-ui,sans-serif;
+    pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .1s ease,transform .1s ease}
+  .hovertip.on{opacity:1;transform:none}
+  .opsstatus .seg[data-tip]:hover,.opsstatus .seg[data-tip]:focus-visible{background:var(--surface-2);outline:none}
+  .opsstatus .stack>span[data-tip]:hover,.opsstatus .stack>span[data-tip]:focus-visible{outline:1px solid var(--ink);outline-offset:1px}
+  .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+    overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  .cl{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:6px}
+  .cl i{display:inline-block;width:16px;border-top:2px solid var(--ink);margin-right:6px;vertical-align:middle}
+  .cl i.d{border-top:1.5px dashed var(--muted)}
+
+  .li{display:grid;grid-template-columns:16px minmax(0,1fr) 72px 96px;gap:12px;align-items:center;
+    padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+  .li.kv{display:flex;gap:10px}
+  .li.set{display:flex;gap:16px;align-items:flex-start}
+  .li.set .n{white-space:normal;overflow:visible;flex:1 1 auto}
+  .li.set .v{white-space:normal;text-align:right;flex:0 1 auto;max-width:60%}
+  .li.n2{grid-template-columns:16px minmax(0,1fr) 72px 44px}
+  .li:last-of-type{border-bottom:0}
+  .li:hover{background:var(--surface-2)}
+  .li .i{width:14px;color:var(--muted);font-size:12px;flex:none}
+  .li .n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .li .v{font-weight:600;text-align:right}
+  .li.kv .v{margin-left:auto;text-align:right}
+  .track{width:72px;height:8px;background:var(--fill);display:block}
+  .track i{display:block;height:100%;background:var(--ink)}
+  .sub{font-size:12px;color:var(--muted);margin:-4px 0 8px}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tab{border:1px solid var(--line);background:var(--ground);padding:4px 10px;font-size:12.5px;display:inline-block}
+  .tab:hover{background:var(--surface-2)}
+  .fr{display:grid;grid-template-columns:1fr 130px 92px 52px;gap:10px}
+  .fr .st2{color:var(--muted)}
+  .fr .am{text-align:right;font-weight:600}
+  .fr .tm{text-align:right;color:var(--muted)}
+  .allbtn{display:block;border:1px solid var(--line);background:var(--ground);padding:8px;font-size:13px;text-align:center;margin-top:10px}
+  .allbtn:hover{background:var(--surface-2)}
+  .fold{border-top:1px dashed var(--ink);margin:24px 0 8px;position:relative}
+  .fold span{position:absolute;top:-9px;left:0;background:var(--paper);padding-right:10px;font-size:11.5px;color:var(--muted)}
+  .fnote::after{content:"orders + inventory + customers";font-size:12px;color:var(--muted)}
+
+  .scr h2{margin:0 0 3px;font-size:20px;font-weight:700}
+  .lead{margin:0 0 14px;color:var(--muted);font-size:13px}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0}
+  .tbl{border:1px solid var(--line);background:var(--surface);overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 10px;
+    border-bottom:1px solid var(--line);white-space:nowrap;font-weight:600}
+  td{padding:9px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  .ph{display:block;height:8px;background:var(--fill-2);border:1px solid var(--line-soft)}
+
+  .scrim{position:absolute;inset:0;background:var(--shadow);opacity:0;pointer-events:none;transition:opacity .16s;z-index:2}
+  .pn{position:absolute;top:0;right:0;height:100%;width:430px;max-width:92%;background:var(--ground);
+    border-left:1px solid var(--ink);transform:translateX(101%);transition:transform .2s ease;z-index:3;display:flex;flex-direction:column}
+  .pnh{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .pnh h3{margin:0;font-size:16px;font-weight:700}
+  .pnh p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+  .x{margin-left:auto;border:1px solid var(--line);width:28px;height:28px;display:grid;place-items:center;flex:none;font-size:16px;line-height:1}
+  .x:hover{background:var(--surface-2)}
+  .pnb{padding:8px 16px 16px;overflow:auto}
+  .pnb .li{cursor:default}
+
+  .txt{margin-top:44px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px}
+  .txt section{border-top:1px solid var(--line);padding-top:16px}
+  .txt h3{margin:0 0 10px;font-size:15px;font-weight:700}
+  .txt ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+  .txt li{font-size:14px;color:var(--ink-2)}
+  .txt li b{color:var(--ink)}
+  .history{counter-reset:revision;list-style:none!important;padding-left:0!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px!important}
+  .history li{counter-increment:revision;border:1px solid var(--line);padding:14px!important}
+  .history li::before{content:"0" counter(revision);display:block;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;margin-bottom:8px}
+  .history q{display:block;color:var(--ink);font-style:italic;margin:8px 0}
+  .history span{display:block;margin-top:5px}
+  .full{grid-column:1/-1}
+  @media (max-width:900px){.txt{grid-template-columns:1fr}.history{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  #r-l30:checked ~ .wrap .rv:not(.rv-l30){display:none}
+  #r-mtd:checked ~ .wrap .rv:not(.rv-mtd){display:none}
+  #r-ytd:checked ~ .wrap .rv:not(.rv-ytd){display:none}
+  #r-l12:checked ~ .wrap .rv:not(.rv-l12){display:none}
+  #r-l30:checked ~ .wrap label[for="r-l30"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #r-mtd:checked ~ .wrap label[for="r-mtd"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #r-ytd:checked ~ .wrap label[for="r-ytd"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #r-l12:checked ~ .wrap label[for="r-l12"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #s-home:checked ~ .wrap .scr[data-k="home"]{display:flex;flex-direction:column}
+  #s-home:checked ~ .wrap label[for="s-home"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-actions:checked ~ .wrap .scr[data-k="actions"]{display:block}
+  #s-orders:checked ~ .wrap .scr[data-k="orders"]{display:block}
+  #s-orders:checked ~ .wrap label[for="s-orders"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-inventory:checked ~ .wrap .scr[data-k="inventory"]{display:block}
+  #s-inventory:checked ~ .wrap label[for="s-inventory"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-products:checked ~ .wrap .scr[data-k="products"]{display:block}
+  #s-products:checked ~ .wrap label[for="s-products"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-customers:checked ~ .wrap .scr[data-k="customers"]{display:block}
+  #s-customers:checked ~ .wrap label[for="s-customers"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-budgets:checked ~ .wrap .scr[data-k="budgets"]{display:block}
+  #s-budgets:checked ~ .wrap label[for="s-budgets"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-redemption:checked ~ .wrap .scr[data-k="redemption"]{display:block}
+  #s-redemption:checked ~ .wrap label[for="s-redemption"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-rentals:checked ~ .wrap .scr[data-k="rentals"]{display:block}
+  #s-rentals:checked ~ .wrap label[for="s-rentals"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-integrations:checked ~ .wrap .scr[data-k="integrations"]{display:block}
+  #s-integrations:checked ~ .wrap label[for="s-integrations"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #s-settings:checked ~ .wrap .scr[data-k="settings"]{display:block}
+  #s-settings:checked ~ .wrap label[for="s-settings"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+  #f-inproc:checked ~ .wrap .fr:not([data-st="inproc"]){display:none}
+  #f-inproc:checked ~ .wrap .tabs label[for="f-inproc"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-shipped:checked ~ .wrap .fr:not([data-st="shipped"]){display:none}
+  #f-shipped:checked ~ .wrap .tabs label[for="f-shipped"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-outfor:checked ~ .wrap .fr:not([data-st="outfor"]){display:none}
+  #f-outfor:checked ~ .wrap .tabs label[for="f-outfor"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-deliv:checked ~ .wrap .fr:not([data-st="deliv"]){display:none}
+  #f-deliv:checked ~ .wrap .tabs label[for="f-deliv"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-exc:checked ~ .wrap .fr:not([data-st="exc"]){display:none}
+  #f-exc:checked ~ .wrap .tabs label[for="f-exc"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-hold:checked ~ .wrap .fr:not([data-st="hold"]){display:none}
+  #f-hold:checked ~ .wrap .tabs label[for="f-hold"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-all:checked ~ .wrap .tabs label[for="f-all"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+  #f-inproc:checked ~ .wrap .fnote::after{content:"filter: In process"}
+  #f-shipped:checked ~ .wrap .fnote::after{content:"filter: Shipped"}
+  #f-outfor:checked ~ .wrap .fnote::after{content:"filter: Out for delivery"}
+  #f-deliv:checked ~ .wrap .fnote::after{content:"filter: Delivered"}
+  #f-exc:checked ~ .wrap .fnote::after{content:"filter: Exception"}
+  #f-hold:checked ~ .wrap .fnote::after{content:"filter: On hold"}
+  #f-shipped:checked ~ .wrap .activityempty,
+  #f-outfor:checked ~ .wrap .activityempty,
+  #f-deliv:checked ~ .wrap .activityempty,
+  #f-exc:checked ~ .wrap .activityempty,
+  #f-hold:checked ~ .wrap .activityempty{display:flex}
+  #p-blocked:checked ~ .wrap .pn[data-p="blocked"]{transform:none}
+  #p-blocked:checked ~ .wrap .scrim[data-p="blocked"]{opacity:1;pointer-events:auto}
+  #p-backorder:checked ~ .wrap .pn[data-p="backorder"]{transform:none}
+  #p-backorder:checked ~ .wrap .scrim[data-p="backorder"]{opacity:1;pointer-events:auto}
+  #p-reorder:checked ~ .wrap .pn[data-p="reorder"]{transform:none}
+  #p-reorder:checked ~ .wrap .scrim[data-p="reorder"]{opacity:1;pointer-events:auto}
+  #p-export:checked ~ .wrap .pn[data-p="export"]{transform:none}
+  #p-export:checked ~ .wrap .scrim[data-p="export"]{opacity:1;pointer-events:auto}
+  #p-find:checked ~ .wrap .pn[data-p="find"]{transform:none}
+  #p-find:checked ~ .wrap .scrim[data-p="find"]{opacity:1;pointer-events:auto}
+  #p-cust:checked ~ .wrap .pn[data-p="cust"]{transform:none}
+  #p-cust:checked ~ .wrap .scrim[data-p="cust"]{opacity:1;pointer-events:auto}
+  #p-budg:checked ~ .wrap .pn[data-p="budg"]{transform:none}
+  #p-budg:checked ~ .wrap .scrim[data-p="budg"]{opacity:1;pointer-events:auto}
+  #p-camp:checked ~ .wrap .pn[data-p="camp"]{transform:none}
+  #p-camp:checked ~ .wrap .scrim[data-p="camp"]{opacity:1;pointer-events:auto}
+  #p-item:checked ~ .wrap .pn[data-p="item"]{transform:none}
+  #p-item:checked ~ .wrap .scrim[data-p="item"]{opacity:1;pointer-events:auto}
+  #p-order:checked ~ .wrap .pn[data-p="order"]{transform:none}
+  #p-order:checked ~ .wrap .scrim[data-p="order"]{opacity:1;pointer-events:auto}
+  #r-l30:checked ~ .wrap .stack-inproc{flex:30}
+  #r-l30:checked ~ .wrap .stack-shipped{flex:70}
+  #r-l30:checked ~ .wrap .stack-outfor{flex:8}
+  #r-l30:checked ~ .wrap .stack-deliv{flex:261}
+  #r-l30:checked ~ .wrap .stack-exc{flex:4}
+  #r-l30:checked ~ .wrap .stack-hold{flex:8}
+  #r-mtd:checked ~ .wrap .stack-inproc{flex:22}
+  #r-mtd:checked ~ .wrap .stack-shipped{flex:44}
+  #r-mtd:checked ~ .wrap .stack-outfor{flex:5}
+  #r-mtd:checked ~ .wrap .stack-deliv{flex:163}
+  #r-mtd:checked ~ .wrap .stack-exc{flex:3}
+  #r-mtd:checked ~ .wrap .stack-hold{flex:4}
+  #r-ytd:checked ~ .wrap .stack-inproc{flex:30}
+  #r-ytd:checked ~ .wrap .stack-shipped{flex:140}
+  #r-ytd:checked ~ .wrap .stack-outfor{flex:8}
+  #r-ytd:checked ~ .wrap .stack-deliv{flex:2930}
+  #r-ytd:checked ~ .wrap .stack-exc{flex:8}
+  #r-ytd:checked ~ .wrap .stack-hold{flex:4}
+  #r-l12:checked ~ .wrap .stack-inproc{flex:30}
+  #r-l12:checked ~ .wrap .stack-shipped{flex:150}
+  #r-l12:checked ~ .wrap .stack-outfor{flex:8}
+  #r-l12:checked ~ .wrap .stack-deliv{flex:3812}
+  #r-l12:checked ~ .wrap .stack-exc{flex:8}
+  #r-l12:checked ~ .wrap .stack-hold{flex:4}
+</style>
+</head>
+<body class="version-two">
+<input class="st" type="checkbox" id="th">
+<input class="st" type="checkbox" id="notes" checked>
+<input class="st" type="checkbox" id="collapse">
+<input class="st" type="radio" name="rng" id="r-l30">
+<input class="st" type="radio" name="rng" id="r-mtd">
+<input class="st" type="radio" name="rng" id="r-ytd">
+<input class="st" type="radio" name="rng" id="r-l12" checked>
+<input class="st" type="radio" name="scr" id="s-home" checked>
+<input class="st" type="radio" name="scr" id="s-actions">
+<input class="st" type="radio" name="scr" id="s-orders">
+<input class="st" type="radio" name="scr" id="s-inventory">
+<input class="st" type="radio" name="scr" id="s-products">
+<input class="st" type="radio" name="scr" id="s-customers">
+<input class="st" type="radio" name="scr" id="s-budgets">
+<input class="st" type="radio" name="scr" id="s-redemption">
+<input class="st" type="radio" name="scr" id="s-rentals">
+<input class="st" type="radio" name="scr" id="s-integrations">
+<input class="st" type="radio" name="scr" id="s-settings">
+<input class="st" type="radio" name="flt" id="f-all" checked>
+<input class="st" type="radio" name="flt" id="f-inproc">
+<input class="st" type="radio" name="flt" id="f-shipped">
+<input class="st" type="radio" name="flt" id="f-outfor">
+<input class="st" type="radio" name="flt" id="f-deliv">
+<input class="st" type="radio" name="flt" id="f-exc">
+<input class="st" type="radio" name="flt" id="f-hold">
+<input class="st" type="checkbox" id="p-blocked">
+<input class="st" type="checkbox" id="p-backorder">
+<input class="st" type="checkbox" id="p-reorder">
+<input class="st" type="checkbox" id="p-export">
+<input class="st" type="checkbox" id="p-find">
+<input class="st" type="checkbox" id="p-cust">
+<input class="st" type="checkbox" id="p-budg">
+<input class="st" type="checkbox" id="p-camp">
+<input class="st" type="checkbox" id="p-item">
+<input class="st" type="checkbox" id="p-order">
+<div class="wrap">
+<div class="inner">
+<div class="head">
+<div>
+<h1>Achilles Dashboard Demo — Version 2</h1>
+<p>A priority-led alternative: urgent work remains at the top, followed by Order status on the left and the client-priority sales trend with Top products on the right. Recent activity follows immediately below at full width. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
+</div>
+<div class="hints">
+<a class="variantlink" href="/work/cogginspromo/">← Open Version 1</a>
+<label class="hint" for="notes">
+<span class="sw">
+</span>
+<span>notes</span>
+</label>
+<label class="hint" for="th">
+<span class="sw">
+</span>
+<span>dark theme</span>
+</label>
+</div>
+</div>
+<div class="app">
+<div class="appscroll">
+<div class="appinner">
+<div class="top">
+<div class="logo">LOGO</div>
+<label class="find" for="p-find">Search: order number, customer, SKU</label>
+<span class="grow">
+</span>
+<span class="rgl">period</span>
+<div class="grp">
+<label class="ctl" for="r-l30">30 days</label>
+<label class="ctl" for="r-mtd">Month</label>
+<label class="ctl" for="r-ytd">Year</label>
+<label class="ctl" for="r-l12">12 months</label>
+</div>
+<label class="ctl" for="p-export">Export</label>
+<label class="ctl thbtn" for="th">Theme: <span class="thv">
+</span>
+</label>
+</div>
+<div class="cols">
+<nav class="side">
+<label class="nav" for="s-home" title="Home">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 7 8 2l6 5v7H2z"/>
+</svg>
+<span class="tx">Home</span>
+</label>
+<label class="nav" for="s-orders" title="Orders">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M3 4h10M3 8h10M3 12h7"/>
+</svg>
+<span class="tx">Orders</span>
+</label>
+<label class="nav" for="s-inventory" title="Inventory">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 5 8 2l6 3v7l-6 3-6-3z"/>
+<path d="M2 5l6 3 6-3M8 8v7"/>
+</svg>
+<span class="tx">Inventory</span>
+</label>
+<label class="nav" for="s-products" title="Products">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2.5 2.5h5v5h-5zM8.5 2.5h5v5h-5zM2.5 8.5h5v5h-5zM8.5 8.5h5v5h-5z"/>
+</svg>
+<span class="tx">Products</span>
+</label>
+<label class="nav" for="s-customers" title="Customers">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="8" cy="6" r="2.6"/>
+<path d="M3 14c0-2.8 10-2.8 10 0"/>
+</svg>
+<span class="tx">Customers</span>
+</label>
+<label class="nav" for="s-budgets" title="Budgets &amp; Credit">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M3 13V9M8 13V3M13 13V7"/>
+</svg>
+<span class="tx">Budgets &amp; Credit</span>
+</label>
+<label class="nav" for="s-redemption" title="Redemption">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2.5 6.5h11v7h-11zM2.5 6.5h11M8 6.5V13.5"/>
+<path d="M8 6.5C6.5 3.5 3.5 4 4.5 6.5M8 6.5c1.5-3 4.5-2.5 3.5 0"/>
+</svg>
+<span class="tx">Redemption</span>
+</label>
+<label class="nav" for="s-rentals" title="Event Rentals">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2.5 3.5h11v10h-11zM2.5 7h11M6 2v3M10 2v3"/>
+</svg>
+<span class="tx">Event Rentals</span>
+</label>
+<label class="nav" for="s-integrations" title="Integrations">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M6.5 9.5 9.5 6.5"/>
+<path d="M9 4.5 10.5 3a2.5 2.5 0 0 1 3.5 3.5L12.5 8"/>
+<path d="M7 12 5.5 13.5A2.5 2.5 0 0 1 2 10l1.5-1.5"/>
+</svg>
+<span class="tx">Integrations</span>
+</label>
+<div class="sidefoot">
+<span class="tx">9 top-level sections. Previously there were 9 menu items and 20 nested screens: eight inventory screens were consolidated into Inventory, while Redemption Dashboard, Delivery Reports, and CRM Activity were removed.</span>
+</div>
+<label class="nav navset" for="s-settings" title="Settings">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 4.5h6.5M12 4.5h2M2 8h2.5M8 8h6M2 11.5h6.5M12 11.5h2"/>
+<circle cx="10.2" cy="4.5" r="1.6"/>
+<circle cx="6.2" cy="8" r="1.6"/>
+<circle cx="10.2" cy="11.5" r="1.6"/>
+</svg>
+<span class="tx">Settings</span>
+</label>
+<label class="collapse" for="collapse" title="Collapse navigation" aria-label="Collapse navigation">
+<svg class="ic" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M11 3.5 6 8l5 4.5"/>
+<path d="M3.5 3v10"/>
+</svg>
+</label>
+</nav>
+<div class="main">
+<section class="scr" data-k="home">
+<label class="actionbar" for="s-actions" title="Open Action center">
+<span class="actioncopy">
+<span class="actiontitle">Action required</span>
+<span class="actionsummary"><span class="rv rv-l30">12 blocked orders and 56 items to reorder</span><span class="rv rv-mtd">7 blocked orders and 41 items to reorder</span><span class="rv rv-ytd">12 blocked orders and 56 items to reorder</span><span class="rv rv-l12">12 blocked orders and 56 items to reorder</span></span>
+</span>
+<span class="actiongo">Open Action center →</span>
+</label>
+<div class="note revisionnote" aria-label="Client feedback and revision notes">
+<strong>Client feedback → implemented decisions</strong>
+<ul>
+<li><q>I removed Action Required, but I do think we should have that included in some way. Just wonder if there is another option. Maybe we call that out at the top of the dashboard and it takes you to another page?</q> The removed task block became a compact top callout that opens a dedicated Action center.</li>
+<li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> They remain one operational sequence: the fixed Order status summary stays in the primary row, and the full-width Recent activity feed follows immediately below. The client-priority trend now occupies the top-right position.</li>
+<li><q>The current activity feed also includes inventory receipts and customer registrations....looks like that was removed. Not really sure what is best but just pointing that out.</q> Those events were restored under All, while status tabs remain order-only.</li>
+<li><b>Interaction pass:</b> every Home block now has a defined role—charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
+</ul>
+</div>
+<div class="opsgrid">
+<div class="zone opszone opsstatus">
+<div class="zhead">
+<span class="zn">1</span>
+<span class="zt">Order status</span>
+<span class="zs">fixed overview for the selected period</span>
+</div>
+<div class="pipe">
+<div class="seg total">
+<span class="segv num">
+<span class="rv rv-l30">392</span>
+<span class="rv rv-mtd">241</span>
+<span class="rv rv-ytd">3 120</span>
+<span class="rv rv-l12">4 012</span>
+</span>
+<span class="segc">Total</span>
+</div>
+<div class="seg">
+<span class="segv num">
+<span class="rv rv-l30">30</span>
+<span class="rv rv-mtd">22</span>
+<span class="rv rv-ytd">30</span>
+<span class="rv rv-l12">30</span>
+</span>
+<span class="segc">In process</span>
+</div>
+<div class="seg">
+<span class="segv num">
+<span class="rv rv-l30">70</span>
+<span class="rv rv-mtd">44</span>
+<span class="rv rv-ytd">140</span>
+<span class="rv rv-l12">150</span>
+</span>
+<span class="segc">Shipped</span>
+</div>
+<div class="seg">
+<span class="segv num">
+<span class="rv rv-l30">8</span>
+<span class="rv rv-mtd">5</span>
+<span class="rv rv-ytd">8</span>
+<span class="rv rv-l12">8</span>
+</span>
+<span class="segc">Out for delivery</span>
+</div>
+<div class="seg">
+<span class="segv num">
+<span class="rv rv-l30">261</span>
+<span class="rv rv-mtd">163</span>
+<span class="rv rv-ytd">2930</span>
+<span class="rv rv-l12">3812</span>
+</span>
+<span class="segc">Delivered</span>
+</div>
+<div class="seg warn">
+<span class="segv num">
+<span class="rv rv-l30">4</span>
+<span class="rv rv-mtd">3</span>
+<span class="rv rv-ytd">8</span>
+<span class="rv rv-l12">8</span>
+</span>
+<span class="segc">Exception</span>
+</div>
+<div class="seg warn">
+<span class="segv num">
+<span class="rv rv-l30">8</span>
+<span class="rv rv-mtd">4</span>
+<span class="rv rv-ytd">4</span>
+<span class="rv rv-l12">4</span>
+</span>
+<span class="segc">On hold</span>
+</div>
+</div>
+<div class="stackrow">
+<div class="stackcap">status share<br>of orders</div>
+<div class="stack">
+<span class="stack-inproc" title="In process">
+<span class="rv rv-l30">8%</span>
+<span class="rv rv-mtd">9%</span>
+<span class="rv rv-ytd">
+</span>
+<span class="rv rv-l12">
+</span>
+</span>
+<span class="stack-shipped" title="Shipped">
+<span class="rv rv-l30">18%</span>
+<span class="rv rv-mtd">18%</span>
+<span class="rv rv-ytd">
+</span>
+<span class="rv rv-l12">
+</span>
+</span>
+<span class="stack-outfor" title="Out for delivery">
+<span class="rv rv-l30">
+</span>
+<span class="rv rv-mtd">
+</span>
+<span class="rv rv-ytd">
+</span>
+<span class="rv rv-l12">
+</span>
+</span>
+<span class="stack-deliv" title="Delivered">
+<span class="rv rv-l30">69%</span>
+<span class="rv rv-mtd">68%</span>
+<span class="rv rv-ytd">94%</span>
+<span class="rv rv-l12">95%</span>
+</span>
+<span class="stack-exc on" title="Exception">
+<span class="rv rv-l30">
+</span>
+<span class="rv rv-mtd">
+</span>
+<span class="rv rv-ytd">
+</span>
+<span class="rv rv-l12">
+</span>
+</span>
+<span class="stack-hold on" title="On hold">
+<span class="rv rv-l30">
+</span>
+<span class="rv rv-mtd">
+</span>
+<span class="rv rv-ytd">
+</span>
+<span class="rv rv-l12">
+</span>
+</span>
+</div>
+<div class="stacklegend">
+<b>
+</b>dark segments represent Exception and On hold, the only two statuses that require action</div>
+</div>
+<div class="note"><b>Fixed after review:</b> Order status is a period summary, not a control. Its cards no longer react when a Recent activity tab is selected, and they cannot move the page. The bar below shows each status as a share of all orders. Exception and On hold are emphasized because they require action. Total is an aggregate, so its column is separated. Verified on the site: 30+70+8+261+4+8 = 381, while the All tab shows 392—eleven orders are not assigned to any status.</div>
+</div>
+<div class="zone opszone opsactivity">
+<div class="zhead">
+<span class="zn">2</span>
+<span class="zt">Recent activity</span>
+<span class="zs">
+<span class="fnote">
+</span>
+</span>
+</div>
+<div class="card">
+<div class="tabs">
+<label class="tab" for="f-all">All</label>
+<label class="tab" for="f-inproc">In process</label>
+<label class="tab" for="f-shipped">Shipped</label>
+<label class="tab" for="f-outfor">Out for delivery</label>
+<label class="tab" for="f-deliv">Delivered</label>
+<label class="tab" for="f-exc">Exception</label>
+<label class="tab" for="f-hold">On hold</label>
+</div>
+<div class="activityrows">
+<label class="li fr" data-st="event" for="s-inventory">
+<span class="n">Inventory receipt · C-Y146 Acrylic Stand</span>
+<span class="st2">Inventory</span>
+<span class="am num">+24 units°</span>
+<span class="tm">3 hr°</span>
+</label>
+<label class="li fr" data-st="event" for="s-customers">
+<span class="n">Customer registration · New account</span>
+<span class="st2">Customer</span>
+<span class="am num">Created°</span>
+<span class="tm">6 hr°</span>
+</label>
+<label class="li fr" data-st="inproc" for="p-order">
+<span class="n">Order #30436499 · Brianna Hart</span>
+<span class="st2">In process</span>
+<span class="am num">$88.82</span>
+<span class="tm">9 hr</span>
+</label>
+<label class="li fr" data-st="inproc" for="p-order">
+<span class="n">Order #30434554 · Giselle Fernandez</span>
+<span class="st2">In process</span>
+<span class="am num">$67.66</span>
+<span class="tm">13 hr</span>
+</label>
+<label class="li fr" data-st="inproc" for="p-order">
+<span class="n">Order #30434161 · Regine Ruth</span>
+<span class="st2">In process</span>
+<span class="am num">$86.35</span>
+<span class="tm">13 hr</span>
+</label>
+<label class="li fr" data-st="inproc" for="p-order">
+<span class="n">Order #30433823 · Ken Bethuy</span>
+<span class="st2">In process</span>
+<span class="am num">$131.38</span>
+<span class="tm">14 hr</span>
+</label>
+<label class="li fr" data-st="inproc" for="p-order">
+<span class="n">Order #30433700 · Deidre Laramie</span>
+<span class="st2">In process</span>
+<span class="am num">$67.64</span>
+<span class="tm">14 hr</span>
+</label>
+<label class="li fr" data-st="inproc" for="p-order">
+<span class="n">Order #30431944 · Jessica Snell</span>
+<span class="st2">In process</span>
+<span class="am num">$52.42</span>
+<span class="tm">17 hr</span>
+</label>
+<label class="li fr" data-st="shipped" for="p-order">
+<span class="n">Order #30433968 · Brooke Pietruszka</span>
+<span class="st2">Shipped</span>
+<span class="am num">$76.92</span>
+<span class="tm">14 hr</span>
+</label>
+<label class="li fr" data-st="outfor" for="p-order">
+<span class="n">Order #30428104 · Marla Kent</span>
+<span class="st2">Out for delivery</span>
+<span class="am num">$63.40</span>
+<span class="tm">2 days</span>
+</label>
+<label class="li fr" data-st="deliv" for="p-order">
+<span class="n">Order #30428737 · Clevon Melville</span>
+<span class="st2">Delivered</span>
+<span class="am num">$41.10</span>
+<span class="tm">2 days</span>
+</label>
+<label class="li fr" data-st="exc" for="p-order">
+<span class="n">Order #30427551 · Owen Brady</span>
+<span class="st2">Exception</span>
+<span class="am num">$214.90</span>
+<span class="tm">3 days</span>
+</label>
+<label class="li fr" data-st="hold" for="p-order">
+<span class="n">Order #30426980 · Tessa Nguyen</span>
+<span class="st2">On hold</span>
+<span class="am num">$98.15</span>
+<span class="tm">4 days</span>
+</label>
+<div class="activityempty" role="status">
+<svg class="emptyicon" viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M3 4.5h14v11H3z"/>
+<path d="M3 11h4l1.5 2h3l1.5-2h4"/>
+</svg>
+<strong>No additional activity</strong>
+<span>No more orders match this status in the selected period. Choose All to view the complete feed.</span>
+</div>
+</div>
+<label class="allbtn" for="s-orders">View all activity →</label>
+</div>
+<div class="note"><b>Restored after review:</b> the feed again combines order updates, inventory receipts, and customer registrations. Status tabs filter order events in place without moving the page; All restores the complete cross-functional feed. When a status has no additional rows, the feed shows a directional placeholder instead of an unexplained blank area. Values marked ° are illustrative.</div>
+</div>
+</div>
+<div class="zone home-metrics">
+<div class="zhead">
+<span class="zn">3</span>
+<span class="zt">Period metrics</span>
+<span class="zs">
+<span class="rv rv-l30">July 27 – August 26, 2026</span>
+<span class="rv rv-mtd">August 1–26, 2026</span>
+<span class="rv rv-ytd">January 1 – August 26, 2026</span>
+<span class="rv rv-l12">August 26, 2025 – August 26, 2026</span>
+</span>
+</div>
+<div class="grid g4">
+<label class="card kpi kpi-link" for="s-orders" data-metric="Sales" data-tip="Open Orders. Total sales for the selected period.">
+<div class="k">Sales</div>
+<div class="v num">
+<span class="rv rv-l30">$39,806.92</span>
+<span class="rv rv-mtd">$24,680.10</span>
+<span class="rv rv-ytd">$402,118.40</span>
+<span class="rv rv-l12">$512,446.10</span>
+</div>
+<svg class="spark" viewBox="0 0 120 24" preserveAspectRatio="none" aria-hidden="true">
+<path d="M0.0,17.6 L8.0,3.0 L16.0,21.3 L24.0,19.9 L32.0,13.8 L40.0,15.4 L48.0,18.1 L56.0,16.7 L64.0,13.5 L72.0,22.0 L80.0,18.6 L88.0,20.4 L96.0,17.6 L104.0,16.1 L112.0,18.4 L120.0,17.0" fill="none" stroke="var(--muted)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+<circle cx="120" cy="17.0" r="2" fill="var(--ink)"/>
+</svg>
+<div class="d">vs. previous period <span class="rv rv-l30">+12%</span>
+<span class="rv rv-mtd">+6%</span>
+<span class="rv rv-ytd">+21%</span>
+<span class="rv rv-l12">+18%</span>°</div>
+</label>
+<label class="card kpi kpi-link" for="s-orders" data-metric="Orders" data-tip="Open Orders. Orders created in the selected period.">
+<div class="k">Orders</div>
+<div class="v num">
+<span class="rv rv-l30">354</span>
+<span class="rv rv-mtd">219</span>
+<span class="rv rv-ytd">3 120</span>
+<span class="rv rv-l12">4 012</span>
+</div>
+<svg class="spark" viewBox="0 0 120 24" preserveAspectRatio="none" aria-hidden="true">
+<path d="M0.0,22.0 L17.1,12.5 L34.3,18.8 L51.4,6.2 L68.6,9.3 L85.7,15.7 L102.9,3.0 L120.0,9.3" fill="none" stroke="var(--muted)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+<circle cx="120" cy="9.3" r="2" fill="var(--ink)"/>
+</svg>
+<div class="d">vs. previous period <span class="rv rv-l30">-4%</span>
+<span class="rv rv-mtd">-9%</span>
+<span class="rv rv-ytd">+14%</span>
+<span class="rv rv-l12">+11%</span>°</div>
+</label>
+<label class="card kpi kpi-link" for="s-inventory" data-metric="Inventory value" data-tip="Open Inventory. Current stock value is a point-in-time metric.">
+<div class="k">Inventory value</div>
+<div class="v num">$144,833.06</div>
+<svg class="spark" viewBox="0 0 120 24" preserveAspectRatio="none" aria-hidden="true">
+<path d="M0.0,7.8 L17.1,12.5 L34.3,3.0 L51.4,17.2 L68.6,12.5 L85.7,7.8 L102.9,17.2 L120.0,22.0" fill="none" stroke="var(--muted)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+<circle cx="120" cy="22.0" r="2" fill="var(--ink)"/>
+</svg>
+<div class="d">$2,099 in transit · 3 SKUs</div>
+</label>
+<label class="card kpi kpi-link" for="s-customers" data-metric="Users" data-tip="Open Customers. The total is current; the change follows the selected period.">
+<div class="k">Users</div>
+<div class="v num">4,275</div>
+<svg class="spark" viewBox="0 0 120 24" preserveAspectRatio="none" aria-hidden="true">
+<path d="M0.0,22.0 L17.1,20.3 L34.3,18.5 L51.4,16.8 L68.6,15.1 L85.7,11.6 L102.9,8.2 L120.0,3.0" fill="none" stroke="var(--muted)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+<circle cx="120" cy="3.0" r="2" fill="var(--ink)"/>
+</svg>
+<div class="d">
+<span class="rv rv-l30">+32</span>
+<span class="rv rv-mtd">+21</span>
+<span class="rv rv-ytd">+318</span>
+<span class="rv rv-l12">+402</span> for the period</div>
+</label>
+</div>
+<div class="note">The four KPI cards are interactive and sit before Trends in Version 2: Sales and Orders open Orders, Inventory value opens Inventory, and Users opens Customers. Hovering or focusing a card explains whether the number follows the selected period or is a point-in-time value. Verified: the dashboard shows 354 orders for July 27–August 26, while Orders shows 392 for the same range; the discrepancy remains visible instead of being hidden. Figures for periods other than 30 days are illustrative°.</div>
+</div>
+<div class="zone home-trends">
+<div class="zhead">
+<span class="zn">4</span>
+<span class="zt">Trends and top products</span>
+<span class="zs">2/3 + 1/3</span>
+</div>
+<div class="grid g83">
+<div class="card">
+<h4>Daily sales</h4>
+<span class="rv rv-l30">
+<svg class="chart" viewBox="0 0 600 175" role="img" aria-label="Daily sales">
+<line x1="44" y1="148.0" x2="592" y2="148.0" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="102.7" x2="592" y2="102.7" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="57.3" x2="592" y2="57.3" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="12.0" x2="592" y2="12.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="0" y="151.0" fill="var(--muted)" font-size="10">$0</text>
+<text x="0" y="105.7" fill="var(--muted)" font-size="10">$4.0k</text>
+<text x="0" y="60.3" fill="var(--muted)" font-size="10">$8.0k</text>
+<text x="0" y="15.0" fill="var(--muted)" font-size="10">$12.0k</text>
+<path d="M44.0,118.5 L80.5,25.6 L117.1,142.3 L153.6,133.3 L190.1,94.7 L226.7,104.9 L263.2,121.9 L299.7,112.9 L336.3,92.5 L372.8,146.9 L409.3,125.3 L445.9,136.7 L482.4,118.5 L518.9,109.5 L555.5,124.2 L592.0,115.1 L592,148 L44,148 Z" fill="var(--fill)" opacity=".5"/>
+<path d="M44.0,114.0 L80.5,100.4 L117.1,118.5 L153.6,110.6 L190.1,103.8 L226.7,114.0 L263.2,119.7 L299.7,116.3 L336.3,107.2 L372.8,120.8 L409.3,118.5 L445.9,123.1 L482.4,115.1 L518.9,118.5 L555.5,120.8 L592.0,121.9" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<path d="M44.0,118.5 L80.5,25.6 L117.1,142.3 L153.6,133.3 L190.1,94.7 L226.7,104.9 L263.2,121.9 L299.7,112.9 L336.3,92.5 L372.8,146.9 L409.3,125.3 L445.9,136.7 L482.4,118.5 L518.9,109.5 L555.5,124.2 L592.0,115.1" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="592.0" cy="115.1" r="4" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>
+<text x="584.0" y="107.1" text-anchor="end" font-size="11" font-weight="700" fill="var(--ink)">$2.9k</text>
+<text x="44.0" y="168" fill="var(--muted)" font-size="10" text-anchor="start">07-27</text>
+<text x="190.1" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-04</text>
+<text x="336.3" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-12</text>
+<text x="445.9" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-18</text>
+<text x="592.0" y="168" fill="var(--muted)" font-size="10" text-anchor="end">08-26</text>
+</svg>
+</span>
+<span class="rv rv-mtd">
+<svg class="chart" viewBox="0 0 600 175" role="img" aria-label="Daily sales">
+<line x1="44" y1="148.0" x2="592" y2="148.0" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="102.7" x2="592" y2="102.7" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="57.3" x2="592" y2="57.3" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="12.0" x2="592" y2="12.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="0" y="151.0" fill="var(--muted)" font-size="10">$0</text>
+<text x="0" y="105.7" fill="var(--muted)" font-size="10">$3.0k</text>
+<text x="0" y="60.3" fill="var(--muted)" font-size="10">$6.0k</text>
+<text x="0" y="15.0" fill="var(--muted)" font-size="10">$9.0k</text>
+<path d="M44.0,123.6 L80.5,46.8 L117.1,143.3 L153.6,135.8 L190.1,104.0 L226.7,112.4 L263.2,126.5 L299.7,119.0 L336.3,102.1 L372.8,147.1 L409.3,129.3 L445.9,138.6 L482.4,123.6 L518.9,116.1 L555.5,128.3 L592.0,120.8 L592,148 L44,148 Z" fill="var(--fill)" opacity=".5"/>
+<path d="M44.0,119.9 L80.5,108.7 L117.1,123.6 L153.6,117.1 L190.1,111.5 L226.7,119.9 L263.2,124.6 L299.7,121.8 L336.3,114.3 L372.8,125.5 L409.3,123.6 L445.9,127.4 L482.4,120.8 L518.9,123.6 L555.5,125.5 L592.0,126.5" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<path d="M44.0,123.6 L80.5,46.8 L117.1,143.3 L153.6,135.8 L190.1,104.0 L226.7,112.4 L263.2,126.5 L299.7,119.0 L336.3,102.1 L372.8,147.1 L409.3,129.3 L445.9,138.6 L482.4,123.6 L518.9,116.1 L555.5,128.3 L592.0,120.8" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="592.0" cy="120.8" r="4" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>
+<text x="584.0" y="112.8" text-anchor="end" font-size="11" font-weight="700" fill="var(--ink)">$1.8k</text>
+<text x="44.0" y="168" fill="var(--muted)" font-size="10" text-anchor="start">07-27</text>
+<text x="190.1" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-04</text>
+<text x="336.3" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-12</text>
+<text x="445.9" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-18</text>
+<text x="592.0" y="168" fill="var(--muted)" font-size="10" text-anchor="end">08-26</text>
+</svg>
+</span>
+<span class="rv rv-ytd">
+<svg class="chart" viewBox="0 0 600 175" role="img" aria-label="Daily sales">
+<line x1="44" y1="148.0" x2="592" y2="148.0" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="102.7" x2="592" y2="102.7" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="57.3" x2="592" y2="57.3" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="12.0" x2="592" y2="12.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="0" y="151.0" fill="var(--muted)" font-size="10">$0</text>
+<text x="0" y="105.7" fill="var(--muted)" font-size="10">$30.0k</text>
+<text x="0" y="60.3" fill="var(--muted)" font-size="10">$60.0k</text>
+<text x="0" y="15.0" fill="var(--muted)" font-size="10">$90.0k</text>
+<path d="M44.0,122.9 L80.5,43.6 L117.1,143.2 L153.6,135.4 L190.1,102.5 L226.7,111.2 L263.2,125.8 L299.7,118.0 L336.3,100.6 L372.8,147.0 L409.3,128.7 L445.9,138.3 L482.4,122.9 L518.9,115.1 L555.5,127.7 L592.0,120.0 L592,148 L44,148 Z" fill="var(--fill)" opacity=".5"/>
+<path d="M44.0,119.0 L80.5,107.4 L117.1,122.9 L153.6,116.1 L190.1,110.3 L226.7,119.0 L263.2,123.8 L299.7,120.9 L336.3,113.2 L372.8,124.8 L409.3,122.9 L445.9,126.7 L482.4,120.0 L518.9,122.9 L555.5,124.8 L592.0,125.8" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<path d="M44.0,122.9 L80.5,43.6 L117.1,143.2 L153.6,135.4 L190.1,102.5 L226.7,111.2 L263.2,125.8 L299.7,118.0 L336.3,100.6 L372.8,147.0 L409.3,128.7 L445.9,138.3 L482.4,122.9 L518.9,115.1 L555.5,127.7 L592.0,120.0" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="592.0" cy="120.0" r="4" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>
+<text x="584.0" y="112.0" text-anchor="end" font-size="11" font-weight="700" fill="var(--ink)">$18.6k</text>
+<text x="44.0" y="168" fill="var(--muted)" font-size="10" text-anchor="start">07-27</text>
+<text x="190.1" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-04</text>
+<text x="336.3" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-12</text>
+<text x="445.9" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-18</text>
+<text x="592.0" y="168" fill="var(--muted)" font-size="10" text-anchor="end">08-26</text>
+</svg>
+</span>
+<span class="rv rv-l12">
+<svg class="chart" viewBox="0 0 600 175" role="img" aria-label="Daily sales">
+<line x1="44" y1="148.0" x2="592" y2="148.0" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="102.7" x2="592" y2="102.7" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="57.3" x2="592" y2="57.3" stroke="var(--line-soft)" stroke-width="1"/>
+<line x1="44" y1="12.0" x2="592" y2="12.0" stroke="var(--line-soft)" stroke-width="1"/>
+<text x="0" y="151.0" fill="var(--muted)" font-size="10">$0</text>
+<text x="0" y="105.7" fill="var(--muted)" font-size="10">$40.0k</text>
+<text x="0" y="60.3" fill="var(--muted)" font-size="10">$80.0k</text>
+<text x="0" y="15.0" fill="var(--muted)" font-size="10">$120.0k</text>
+<path d="M44.0,121.2 L80.5,36.6 L117.1,142.8 L153.6,134.6 L190.1,99.5 L226.7,108.8 L263.2,124.3 L299.7,116.0 L336.3,97.5 L372.8,147.0 L409.3,127.4 L445.9,137.7 L482.4,121.2 L518.9,112.9 L555.5,126.3 L592.0,118.1 L592,148 L44,148 Z" fill="var(--fill)" opacity=".5"/>
+<path d="M44.0,117.1 L80.5,104.7 L117.1,121.2 L153.6,114.0 L190.1,107.8 L226.7,117.1 L263.2,122.2 L299.7,119.1 L336.3,110.9 L372.8,123.2 L409.3,121.2 L445.9,125.3 L482.4,118.1 L518.9,121.2 L555.5,123.2 L592.0,124.3" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<path d="M44.0,121.2 L80.5,36.6 L117.1,142.8 L153.6,134.6 L190.1,99.5 L226.7,108.8 L263.2,124.3 L299.7,116.0 L336.3,97.5 L372.8,147.0 L409.3,127.4 L445.9,137.7 L482.4,121.2 L518.9,112.9 L555.5,126.3 L592.0,118.1" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="592.0" cy="118.1" r="4" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>
+<text x="584.0" y="110.1" text-anchor="end" font-size="11" font-weight="700" fill="var(--ink)">$26.4k</text>
+<text x="44.0" y="168" fill="var(--muted)" font-size="10" text-anchor="start">07-27</text>
+<text x="190.1" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-04</text>
+<text x="336.3" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-12</text>
+<text x="445.9" y="168" fill="var(--muted)" font-size="10" text-anchor="middle">08-18</text>
+<text x="592.0" y="168" fill="var(--muted)" font-size="10" text-anchor="end">08-26</text>
+</svg>
+</span>
+<div class="cl">
+<span>
+<i>
+</i>current period</span>
+<span>
+<i class="d">
+</i>previous period°</span>
+</div>
+</div>
+<div class="card">
+<h4>Top products</h4>
+<label class="li" for="p-item">
+<span class="i">1</span>
+<span class="n">New Employee Welcome Box</span>
+<span class="track">
+<i style="width:100%">
+</i>
+</span>
+<span class="v num">$3,701</span>
+</label>
+<label class="li" for="p-item">
+<span class="i">2</span>
+<span class="n">Community Business Cards</span>
+<span class="track">
+<i style="width:52%">
+</i>
+</span>
+<span class="v num">$1,927</span>
+</label>
+<label class="li" for="p-item">
+<span class="i">3</span>
+<span class="n">Bandit Signs</span>
+<span class="track">
+<i style="width:29%">
+</i>
+</span>
+<span class="v num">$1,073</span>
+</label>
+<label class="li" for="p-item">
+<span class="i">4</span>
+<span class="n">YES! Communities T-Shirt</span>
+<span class="track">
+<i style="width:28%">
+</i>
+</span>
+<span class="v num">$1,052</span>
+</label>
+<label class="li" for="p-item">
+<span class="i">5</span>
+<span class="n">Stanley Mini Can Cooler</span>
+<span class="track">
+<i style="width:16%">
+</i>
+</span>
+<span class="v num">$600</span>
+</label>
+</div>
+</div>
+<div class="note">The chart supports pointer hover and keyboard arrows: a crosshair and tooltip report the date, current value, and previous-period value. The title and date axis follow the selected period. Values for periods other than 30 days and all previous-period values remain marked ° because the backend does not currently calculate them. Top products is a 12-month dashboard snapshot; every row opens a panel populated from the selected row.</div>
+</div>
+<div class="zone home-context">
+<div class="zhead">
+<span class="zn">5</span>
+<span class="zt">Customers, budgets, campaigns</span>
+<span class="zs">rows open details</span>
+</div>
+<div class="grid g3">
+<div class="card">
+<h4>Top customers</h4>
+<label class="li" for="p-cust">
+<span class="i">1</span>
+<span class="n">Karlee Stagner</span>
+<span class="track">
+<i style="width:100%">
+</i>
+</span>
+<span class="v num">$313,299</span>
+</label>
+<label class="li" for="p-cust">
+<span class="i">2</span>
+<span class="n">Chena Williams</span>
+<span class="track">
+<i style="width:24%">
+</i>
+</span>
+<span class="v num">$74,341</span>
+</label>
+<label class="li" for="p-cust">
+<span class="i">3</span>
+<span class="n">Laura Reid</span>
+<span class="track">
+<i style="width:18%">
+</i>
+</span>
+<span class="v num">$56,585</span>
+</label>
+<label class="li" for="p-cust">
+<span class="i">4</span>
+<span class="n">Gillian Pariser</span>
+<span class="track">
+<i style="width:8%">
+</i>
+</span>
+<span class="v num">$24,595</span>
+</label>
+<label class="li" for="p-cust">
+<span class="i">5</span>
+<span class="n">Amherst Ridge</span>
+<span class="track">
+<i style="width:7%">
+</i>
+</span>
+<span class="v num">$21,700</span>
+</label>
+</div>
+<div class="card">
+<h4>Budgets by spend</h4>
+<label class="li" for="p-budg">
+<span class="i">1</span>
+<span class="n">Sandhill Shores</span>
+<span class="track">
+<i style="width:100%">
+</i>
+</span>
+<span class="v num">$1,076</span>
+</label>
+<label class="li" for="p-budg">
+<span class="i">2</span>
+<span class="n">Americana Estates</span>
+<span class="track">
+<i style="width:66%">
+</i>
+</span>
+<span class="v num">$710</span>
+</label>
+<label class="li" for="p-budg">
+<span class="i">3</span>
+<span class="n">Savannas Ridge</span>
+<span class="track">
+<i style="width:62%">
+</i>
+</span>
+<span class="v num">$662</span>
+</label>
+<label class="li" for="p-budg">
+<span class="i">4</span>
+<span class="n">Delhi Manor</span>
+<span class="track">
+<i style="width:58%">
+</i>
+</span>
+<span class="v num">$623</span>
+</label>
+<label class="li" for="p-budg">
+<span class="i">5</span>
+<span class="n">Dutch Hills</span>
+<span class="track">
+<i style="width:18%">
+</i>
+</span>
+<span class="v num">$194</span>
+</label>
+</div>
+<div class="card">
+<h4>Campaigns: unclaimed</h4>
+<div class="sub">claimed: 0 · visible unclaimed: 56</div>
+<label class="li n2" for="p-camp">
+<span class="i">1</span>
+<span class="n">Apparel Plus Ownership</span>
+<span class="track">
+<i style="width:100%">
+</i>
+</span>
+<span class="v num">30</span>
+</label>
+<label class="li n2" for="p-camp">
+<span class="i">2</span>
+<span class="n">UDF Test</span>
+<span class="track">
+<i style="width:40%">
+</i>
+</span>
+<span class="v num">12</span>
+</label>
+<label class="li n2" for="p-camp">
+<span class="i">3</span>
+<span class="n">Safety Award</span>
+<span class="track">
+<i style="width:33%">
+</i>
+</span>
+<span class="v num">10</span>
+</label>
+<label class="li n2" for="p-camp">
+<span class="i">4</span>
+<span class="n">Polo Choice</span>
+<span class="track">
+<i style="width:7%">
+</i>
+</span>
+<span class="v num">2</span>
+</label>
+<label class="li n2" for="p-camp">
+<span class="i">5</span>
+<span class="n">Rich Update Test</span>
+<span class="track">
+<i style="width:7%">
+</i>
+</span>
+<span class="v num">2</span>
+</label>
+</div>
+</div>
+<div class="note">Budgets and campaigns are currently visible only inside their respective sections. The five visible campaign rows total 56 unclaimed items, while the source summary reports 54; the demo keeps the row-level values and flags the source discrepancy rather than silently changing them.</div>
+</div>
+<div class="fold">
+<span>below the fold · 1440×900</span>
+</div>
+<div class="note"><b>Version 2 recommendation:</b> the dashboard starts with the compact Action required entry point, then pairs the fixed Order status summary with the client-priority sales trend and Top products. Recent activity follows at full width, preserving its connection to order status without pushing the chart below the first screen. Period metrics and commercial context follow.</div>
+</section>
+<section class="scr" data-k="actions">
+<h2>Action center</h2>
+<p class="lead">A dedicated queue for issues that need intervention, ordered by operational impact.</p>
+<div class="bar">
+<label class="ctl" for="s-home">← Back to dashboard</label>
+</div>
+<div class="grid g3 actionqueue">
+<label class="task" for="p-blocked">
+<span class="k">Blocked orders</span>
+<span class="v num"><span class="rv rv-l30">12</span><span class="rv rv-mtd">7</span><span class="rv rv-ytd">12</span><span class="rv rv-l12">12</span></span>
+<span class="s"><span class="rv rv-l30">8 on hold + 4 exception</span><span class="rv rv-mtd">4 on hold + 3 exception</span><span class="rv rv-ytd">8 on hold + 4 exception</span><span class="rv rv-l12">8 on hold + 4 exception</span><br>Oldest has been waiting for 6 days°</span>
+<span class="go">Open blocked orders →</span>
+</label>
+<label class="task" for="p-backorder">
+<span class="k">Backorders</span>
+<span class="v num">?</span>
+<span class="s">The count is missing from the dashboard response°<br>Source: Backordered Items</span>
+<span class="go">Open backorders →</span>
+</label>
+<label class="task" for="p-reorder">
+<span class="k">Reorder required</span>
+<span class="v num"><span class="rv rv-l30">56</span><span class="rv rv-mtd">41</span><span class="rv rv-ytd">56</span><span class="rv rv-l12">56</span></span>
+<span class="s">3 items will run out before September 10°</span>
+<span class="go">Open forecasting →</span>
+</label>
+</div>
+<div class="note">The dashboard callout summarizes this queue without turning the home screen into a task board. Backorders remain visible here even though the dashboard response does not yet provide a reliable count.</div>
+</section>
+<section class="scr" data-k="orders">
+<h2>Orders</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Total for period</div>
+<div class="v num">392</div>
+</div>
+<div class="card kpi">
+<div class="k">Need attention</div>
+<div class="v num">12</div>
+</div>
+<div class="card kpi">
+<div class="k">Average order value</div>
+<div class="v num">$112</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">All</span>
+<span class="tab">In process</span>
+<span class="tab">Shipped</span>
+<span class="tab">Out for delivery</span>
+<span class="tab">Delivered</span>
+<span class="tab">Exception</span>
+<span class="tab">On hold</span>
+<span class="tab">Redemption</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Order</th>
+<th>Date</th>
+<th>Shipment</th>
+<th>Customer</th>
+<th>Items</th>
+<th>Amount</th>
+<th>Tracking</th>
+<th>Delivery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note">Delivery Reports is now a Redemption filter on this screen, so it no longer needs a separate menu item.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="inventory">
+<h2>Inventory</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Items to reorder</div>
+<div class="v num">56</div>
+</div>
+<div class="card kpi">
+<div class="k">In transit</div>
+<div class="v num">$2,099</div>
+</div>
+<div class="card kpi">
+<div class="k">Inventory value</div>
+<div class="v num">$144,833</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">Low stock</span>
+<span class="tab">Backordered</span>
+<span class="tab">Inbound</span>
+<span class="tab">Current</span>
+<span class="tab">Usage</span>
+<span class="tab">Forecasting</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>SKU</th>
+<th>Item name</th>
+<th>On hand</th>
+<th>Available</th>
+<th>Reorder point</th>
+<th>PO</th>
+<th>Delivery date</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note">Eight previous inventory screens were consolidated into one section with a shared filter.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="products">
+<h2>Products</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Active SKUs</div>
+<div class="v num">412</div>
+</div>
+<div class="card kpi">
+<div class="k">No movement in 90 days</div>
+<div class="v num">38</div>
+</div>
+<div class="card kpi">
+<div class="k">Top by revenue</div>
+<div class="v num">Welcome Box</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">All</span>
+<span class="tab">In stock</span>
+<span class="tab">On demand</span>
+<span class="tab">Archived</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>Image</th>
+<th>SKU</th>
+<th>Item name</th>
+<th>Price</th>
+<th>Available</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note">Top Selling Items does not need a separate screen; it is a sort option here.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="customers">
+<h2>Customers</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Registered</div>
+<div class="v num">4,275</div>
+</div>
+<div class="card kpi">
+<div class="k">New this period</div>
+<div class="v num">+32</div>
+</div>
+<div class="card kpi">
+<div class="k">With budget access</div>
+<div class="v num">612</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">All</span>
+<span class="tab">With budget</span>
+<span class="tab">With credit</span>
+<span class="tab">New</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Registered</th>
+<th>Credit</th>
+<th>Group</th>
+<th>Orders</th>
+<th>Budget</th>
+<th>Total spent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="budgets">
+<h2>Budgets & Credit</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Total spent</div>
+<div class="v num">$135,690</div>
+</div>
+<div class="card kpi">
+<div class="k">Budgets</div>
+<div class="v num">48</div>
+</div>
+<div class="card kpi">
+<div class="k">Unclaimed credit</div>
+<div class="v num">$0</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">Budgets</span>
+<span class="tab">Store credit</span>
+<span class="tab">Credit claims</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>Budget</th>
+<th>Orders</th>
+<th>Spent</th>
+<th>Limit</th>
+<th>Remaining</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note">The data has no limit value; the Limit and Remaining columns are waiting for a backend field.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="redemption">
+<h2>Campaigns</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Active campaigns</div>
+<div class="v num">5</div>
+</div>
+<div class="card kpi">
+<div class="k">Unclaimed</div>
+<div class="v num">54</div>
+</div>
+<div class="card kpi">
+<div class="k">Claimed</div>
+<div class="v num">0</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">Active</span>
+<span class="tab">Archived</span>
+<span class="tab">Delivery report</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Link</th>
+<th>Items</th>
+<th>Unclaimed</th>
+<th>Claimed</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note">Create single and Create multi are actions on this screen; the separate section landing page was removed.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="rentals">
+<h2>Event rentals</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Items</div>
+<div class="v num">24</div>
+</div>
+<div class="card kpi">
+<div class="k">At events</div>
+<div class="v num">6</div>
+</div>
+<div class="card kpi">
+<div class="k">Next event</div>
+<div class="v num">12.09</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">All</span>
+<span class="tab">In storage</span>
+<span class="tab">At event</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>SKU</th>
+<th>Item name</th>
+<th>Owned</th>
+<th>In storage</th>
+<th>At event</th>
+<th>Event</th>
+<th>Shipment</th>
+<th>Contact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:40%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="integrations">
+<h2>Integrations</h2>
+<p class="lead">A consistent internal-screen layout: summary, filter, table. Currently, no product screen has a summary except Budgets.</p>
+<div class="grid g3">
+<div class="card kpi">
+<div class="k">Connected</div>
+<div class="v num">1</div>
+</div>
+<div class="card kpi">
+<div class="k">HR available</div>
+<div class="v num">18</div>
+</div>
+<div class="card kpi">
+<div class="k">Last sync</div>
+<div class="v num">2 hours ago</div>
+</div>
+</div>
+<div class="bar">
+<span class="tab on">Connections</span>
+<span class="tab">HR</span>
+<span class="tab">CRM</span>
+<span class="grow">
+</span>
+<span class="ctl">Period</span>
+<span class="ctl">Export</span>
+</div>
+<div class="tbl">
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Type</th>
+<th>Status</th>
+<th>Last sync</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="ph" style="width:70%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:45%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:90%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:60%">
+</span>
+</td>
+<td>
+<span class="ph" style="width:55%">
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note">The CRM Activity screen labeled Coming soon was removed from the menu until release.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+<section class="scr" data-k="settings">
+<h2>Settings</h2>
+<p class="lead">The product currently has no system settings screen: thresholds, roles, notifications, and rules are defined somewhere in code. This section proposes what should be configurable; each row represents a rule that otherwise has to be remembered.</p>
+<div class="grid g3">
+<div class="card">
+<h4>Organization</h4>
+<div class="li set">
+<span class="n">Company name</span>
+<span class="v">YES! Communities</span>
+</div>
+<div class="li set">
+<span class="n">Portal domain</span>
+<span class="v">shop.yescommunities.com</span>
+</div>
+<div class="li set">
+<span class="n">Time zone</span>
+<span class="v">America/Denver</span>
+</div>
+<div class="li set">
+<span class="n">Currency</span>
+<span class="v">USD</span>
+</div>
+</div>
+<div class="card">
+<h4>Access and roles</h4>
+<div class="li set">
+<span class="n">Roles</span>
+<span class="v">Administrator, Community Manager, Viewer</span>
+</div>
+<div class="li set">
+<span class="n">Who can view budgets</span>
+<span class="v">users with access only</span>
+</div>
+<div class="li set">
+<span class="n">Who can create campaigns</span>
+<span class="v">administrators</span>
+</div>
+<div class="li set">
+<span class="n">SSO</span>
+<span class="v">through the HR integration</span>
+</div>
+</div>
+<div class="card">
+<h4>Orders</h4>
+<div class="li set">
+<span class="n">Stalled-order threshold</span>
+<span class="v">3 days</span>
+</div>
+<div class="li set">
+<span class="n">Automatic hold reminder</span>
+<span class="v">enabled</span>
+</div>
+<div class="li set">
+<span class="n">What counts as an exception</span>
+<span class="v">delivery failure and return</span>
+</div>
+<div class="li set">
+<span class="n">Order numbering</span>
+<span class="v">sequential</span>
+</div>
+</div>
+<div class="card">
+<h4>Inventory</h4>
+<div class="li set">
+<span class="n">Default reorder point</span>
+<span class="v">20% of weekly usage</span>
+</div>
+<div class="li set">
+<span class="n">Forecast horizon</span>
+<span class="v">8 weeks</span>
+</div>
+<div class="li set">
+<span class="n">Low-stock notification</span>
+<span class="v">daily at 8:00 AM</span>
+</div>
+<div class="li set">
+<span class="n">Include items in transit</span>
+<span class="v">yes</span>
+</div>
+</div>
+<div class="card">
+<h4>Budgets & Credit</h4>
+<div class="li set">
+<span class="n">Budget limit</span>
+<span class="v">field is missing from the data°</span>
+</div>
+<div class="li set">
+<span class="n">Budget period</span>
+<span class="v">calendar month</span>
+</div>
+<div class="li set">
+<span class="n">Carry over remaining balance</span>
+<span class="v">disabled</span>
+</div>
+<div class="li set">
+<span class="n">Store credit</span>
+<span class="v">enabled</span>
+</div>
+</div>
+<div class="card">
+<h4>Notifications</h4>
+<div class="li set">
+<span class="n">Email digest</span>
+<span class="v">daily</span>
+</div>
+<div class="li set">
+<span class="n">Recipients</span>
+<span class="v">administrators</span>
+</div>
+<div class="li set">
+<span class="n">Exception alerts</span>
+<span class="v">immediately</span>
+</div>
+<div class="li set">
+<span class="n">Scheduled export</span>
+<span class="v">disabled</span>
+</div>
+</div>
+</div>
+<div class="note">These thresholds feed the dashboard directly: the stalled-order threshold sets the age shown on the Blocked orders card, while the reorder point and forecast horizon determine the count on the Reorder required card.</div>
+<label class="allbtn" for="s-home">← Back to dashboard</label>
+</section>
+</div>
+</div>
+</div>
+</div>
+<label class="scrim" data-p="blocked" for="p-blocked" aria-hidden="true">
+</label>
+<aside class="pn" data-p="blocked">
+<div class="pnh">
+<div>
+<h3>Blocked orders</h3>
+<p>On hold and Exception statuses</p>
+</div>
+<label class="x" for="p-blocked" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">Order #30427551 · Owen Brady</span>
+<span class="v">Exception</span>
+</div>
+<div class="li kv">
+<span class="n">Order #30426980 · Tessa Nguyen</span>
+<span class="v">On hold</span>
+</div>
+<div class="li kv">
+<span class="n">Order #30426114 · Darnell Pratt</span>
+<span class="v">On hold</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="backorder" for="p-backorder" aria-hidden="true">
+</label>
+<aside class="pn" data-p="backorder">
+<div class="pnh">
+<div>
+<h3>Backorder</h3>
+<p>Backordered Items screen</p>
+</div>
+<label class="x" for="p-backorder" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="note" style="margin:0 0 10px">The dashboard response does not include this count yet. The existing screen fields are shown below.</div>
+<div class="li kv">
+<span class="n">Order</span>
+<span class="v">#30427551</span>
+</div>
+<div class="li kv">
+<span class="n">Customer</span>
+<span class="v">Owen Brady</span>
+</div>
+<div class="li kv">
+<span class="n">Item</span>
+<span class="v">F-Y301 Pepper Spray Keychain</span>
+</div>
+<div class="li kv">
+<span class="n">Shortage</span>
+<span class="v">12 units</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="reorder" for="p-reorder" aria-hidden="true">
+</label>
+<aside class="pn" data-p="reorder">
+<div class="pnh">
+<div>
+<h3>Reorder required</h3>
+<p>Inventory Forecasting</p>
+</div>
+<label class="x" for="p-reorder" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">F-Y301 · POM Pepper Spray Keychain</span>
+<span class="v">1 week of stock°</span>
+</div>
+<div class="li kv">
+<span class="n">C-Y146 · Acrylic Stand with Hub</span>
+<span class="v">2 weeks of stock°</span>
+</div>
+<div class="li kv">
+<span class="n">F-Y303 · Benefits Card</span>
+<span class="v">3 weeks of stock°</span>
+</div>
+<div class="li kv">
+<span class="n">Recommendation</span>
+<span class="v">order by September 3°</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="export" for="p-export" aria-hidden="true">
+</label>
+<aside class="pn" data-p="export">
+<div class="pnh">
+<div>
+<h3>Export</h3>
+<p>export for the selected period</p>
+</div>
+<label class="x" for="p-export" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="note" style="margin:0 0 10px">Export to Excel appears on all 20 product screens, which makes exporting a primary workflow.</div>
+<div class="li kv">
+<span class="n">Period</span>
+<span class="v">selected in the header</span>
+</div>
+<div class="li kv">
+<span class="n">Metrics</span>
+<span class="v">4 metrics</span>
+</div>
+<div class="li kv">
+<span class="n">Orders</span>
+<span class="v">activity feed and statuses</span>
+</div>
+<div class="li kv">
+<span class="n">Format</span>
+<span class="v">XLSX</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="find" for="p-find" aria-hidden="true">
+</label>
+<aside class="pn" data-p="find">
+<div class="pnh">
+<div>
+<h3>Search</h3>
+<p>order number, customer, SKU</p>
+</div>
+<label class="x" for="p-find" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="note" style="margin:0 0 10px">The product currently has no search on any screen, even though searching by order number is the most common workflow.</div>
+<div class="li kv">
+<span class="n">Order</span>
+<span class="v">#30436499 · Brianna Hart</span>
+</div>
+<div class="li kv">
+<span class="n">Customer</span>
+<span class="v">Karlee Stagner</span>
+</div>
+<div class="li kv">
+<span class="n">SKU</span>
+<span class="v">F-Y301 · Pepper Spray Keychain</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="cust" for="p-cust" aria-hidden="true">
+</label>
+<aside class="pn" data-p="cust">
+<div class="pnh">
+<div>
+<h3 data-field="title">Karlee Stagner</h3>
+<p>Top customers · dashboard snapshot</p>
+</div>
+<label class="x" for="p-cust" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">Total spent</span>
+<span class="v" data-field="amount">$313,299</span>
+</div>
+<div class="li kv">
+<span class="n">Rank</span>
+<span class="v" data-field="rank">#1</span>
+</div>
+<div class="li kv">
+<span class="n">Reporting window</span>
+<span class="v" data-field="window">Last 12 months</span>
+</div>
+<div class="li kv">
+<span class="n">Action</span>
+<span class="v">Open in Customers</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="budg" for="p-budg" aria-hidden="true">
+</label>
+<aside class="pn" data-p="budg">
+<div class="pnh">
+<div>
+<h3 data-field="title">Sandhill Shores</h3>
+<p>Budgets by spend · dashboard snapshot</p>
+</div>
+<label class="x" for="p-budg" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">Spent</span>
+<span class="v" data-field="amount">$1,076</span>
+</div>
+<div class="li kv">
+<span class="n">Rank</span>
+<span class="v" data-field="rank">#1</span>
+</div>
+<div class="li kv">
+<span class="n">Limit</span>
+<span class="v">not available in the data</span>
+</div>
+<div class="li kv">
+<span class="n">Action</span>
+<span class="v">Open in Budgets</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="camp" for="p-camp" aria-hidden="true">
+</label>
+<aside class="pn" data-p="camp">
+<div class="pnh">
+<div>
+<h3 data-field="title">Apparel Plus Ownership</h3>
+<p>Campaigns · dashboard snapshot</p>
+</div>
+<label class="x" for="p-camp" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">Unclaimed</span>
+<span class="v" data-field="amount">30</span>
+</div>
+<div class="li kv">
+<span class="n">Claimed</span>
+<span class="v">0</span>
+</div>
+<div class="li kv">
+<span class="n">Rank</span>
+<span class="v" data-field="rank">#1</span>
+</div>
+<div class="li kv">
+<span class="n">Action</span>
+<span class="v">Open in Redemption</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="item" for="p-item" aria-hidden="true">
+</label>
+<aside class="pn" data-p="item">
+<div class="pnh">
+<div>
+<h3 data-field="title">New Employee Welcome Box</h3>
+<p>Top products · dashboard snapshot</p>
+</div>
+<label class="x" for="p-item" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">Revenue</span>
+<span class="v" data-field="amount">$3,701</span>
+</div>
+<div class="li kv">
+<span class="n">Rank</span>
+<span class="v" data-field="rank">#1</span>
+</div>
+<div class="li kv">
+<span class="n">Reporting window</span>
+<span class="v" data-field="window">Last 12 months</span>
+</div>
+<div class="li kv">
+<span class="n">Action</span>
+<span class="v">Open in Products</span>
+</div>
+</div>
+</aside>
+<label class="scrim" data-p="order" for="p-order" aria-hidden="true">
+</label>
+<aside class="pn" data-p="order">
+<div class="pnh">
+<div>
+<h3 data-field="title">Order</h3>
+<p>from the activity feed</p>
+</div>
+<label class="x" for="p-order" title="Close">×</label>
+</div>
+<div class="pnb">
+<div class="li kv">
+<span class="n">Status</span>
+<span class="v" data-field="status">In process</span>
+</div>
+<div class="li kv">
+<span class="n">Amount</span>
+<span class="v" data-field="amount">$88.82</span>
+</div>
+<div class="li kv">
+<span class="n">Updated</span>
+<span class="v" data-field="updated">9 hr</span>
+</div>
+<div class="li kv">
+<span class="n">Action</span>
+<span class="v">Open full order</span>
+</div>
+</div>
+</aside>
+</div>
+  <div class="txt">
+    <section>
+      <h3>Interactive elements</h3>
+      <ul>
+        <li>
+<b>Period</b> in the header synchronizes the chart title and date axis, Period metrics, Order status, status share, and Action required counters. Point-in-time values remain stable by design.</li>
+        <li>
+<b>The sales chart</b> supports pointer hover and keyboard arrows. Its crosshair and tooltip expose the date, current value, and previous-period value for every plotted point.</li>
+        <li>
+<b>Period metric cards</b> show a contextual tooltip on hover or focus and open the section that owns the metric: Orders, Inventory, or Customers.</li>
+        <li>
+<b>Order status</b> is a fixed period summary. Its cards are information only: they do not act as filters, receive an active state, or move the page.</li>
+        <li>
+<b>Recent activity tabs</b> are the only order-status filters. They update the feed in place, keep the current scroll position, and show an active state. All restores the complete cross-functional list; short results include a clear end-of-results placeholder.</li>
+        <li>
+<b>The Action required callout</b> opens a dedicated Action center; its three task cards open detail panels on the right.</li>
+        <li>
+<b>Order feed rows</b> open a detail panel populated from the selected row; inventory and customer events lead to their corresponding sections.</li>
+        <li>
+<b>Product, customer, budget, and campaign rows</b> open the correct detail panel with the selected row’s name, value, and rank instead of repeating the first row’s data.</li>
+        <li>
+<b>The left navigation</b> switches sections; each follows the same pattern: summary, filter, table.</li>
+        <li>
+<b>Theme</b> and <b>notes</b> are two toggles above the demo. Notes reveal the client quotes, decision history, data caveats, and implementation rationale next to the relevant blocks; the theme control is duplicated in the demo header.</li>
+        <li>
+<b>The icon at the bottom of the navigation</b> collapses the sidebar to icons; clicking it again expands the sidebar.</li>
+        <li>
+<b>Settings</b> is a new section at the bottom of the navigation; the product currently has no system settings screen.</li>
+        <li><b>Implementation:</b> CSS owns navigation, filters, panels, and visual states. JavaScript remembers the theme, powers chart exploration, announces period changes, and maps selected rows into their detail panels.</li>
+        <li><b>Data reliability:</b> verified source values are shown without a marker. Derived or unsupported comparisons retain the ° marker; known source discrepancies are documented rather than silently normalized.</li>
+      </ul>
+    </section>
+    <section class="full">
+      <h3>Client feedback and revision history</h3>
+      <ol class="history">
+        <li>
+          <b>Action required</b>
+          <q>I removed Action Required, but I do think we should have that included in some way. Just wonder if there is another option. Maybe we call that out at the top of the dashboard and it takes you to another page?</q>
+          <span><b>Before:</b> the dashboard-level task block had been removed, so urgent work no longer had an entry point.</span>
+          <span><b>Fixed:</b> a compact Action required callout now sits at the top and opens a separate Action center with three operational queues.</span>
+          <span><b>Why:</b> urgency remains visible without turning the dashboard into a task-management screen.</span>
+        </li>
+        <li>
+          <b>Order status + Recent activity</b>
+          <q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q>
+          <span><b>Before:</b> the two blocks read as separate areas, and Order status inherited active styling from the activity filters, which made summary cards look clickable.</span>
+          <span><b>Fixed:</b> Order status stays in the primary row, while Recent activity follows immediately below as the next full-width block. Order status is static; Recent activity owns the filters and updates in place without a scroll jump. The top-right position is reserved for the client-priority trend.</span>
+          <span><b>Why:</b> the status summary explains the current distribution, while the adjacent feed provides the underlying events. They are related but have different interaction roles.</span>
+        </li>
+        <li>
+          <b>Cross-functional activity</b>
+          <q>The current activity feed also includes inventory receipts and customer registrations....looks like that was removed. Not really sure what is best but just pointing that out.</q>
+          <span><b>Before:</b> the revised feed showed only order events, removing operational context already present in the product.</span>
+          <span><b>Fixed:</b> inventory receipts and customer registrations were restored under All. Status tabs filter only order events, and short results show “No additional activity.”</span>
+          <span><b>Why:</b> All remains a complete business activity stream, while status tabs retain a clear and predictable meaning.</span>
+        </li>
+      </ol>
+    </section>
+    <section>
+      <h3>Why this order</h3>
+      <ul>
+        <li><b>First:</b> the compact Action required callout exposes urgent work and provides one clear route to the Action center.</li>
+        <li><b>Primary row:</b> Order status stays visible on the left, while the client-priority sales trend and Top products occupy the larger right column.</li>
+        <li><b>Immediately below:</b> Recent activity spans the full width. It remains the event-level explanation for the fixed status summary without displacing the trend from the first screen.</li>
+        <li><b>Interaction boundary:</b> Order status stays read-only; only the tabs inside Recent activity change the feed. This prevents a summary card from being mistaken for a navigation control.</li>
+        <li><b>Then:</b> Period metrics provide the high-level outcome, followed by Customers, budgets, and campaigns as commercial context.</li>
+        <li><b>Stable layout:</b> the activity feed uses a fixed-height region, so filtering does not move the page. All contains 13 mixed events; narrow filters explain when no additional activity remains.</li>
+        <li><b>Depth on demand:</b> complete records live in their sections, while the Action center gives each urgent queue room to grow.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>What moves in from other screens</h3>
+      <ul>
+        <li>
+<b>Orders</b> status counters remain a compact two-column summary in the primary row. Recent activity follows directly below and remains the only status-filtered feed.</li>
+        <li>
+<b>Inventory receipts and customer registrations</b> return to Recent activity alongside order updates.</li>
+        <li>
+<b>Inventory Forecasting</b> Recommended Order Date and Predicted Out Of Stock Date power the Reorder required queue.</li>
+        <li>
+<b>Backordered Items</b> becomes one of the three queues in the Action center.</li>
+        <li>
+<b>Redemption / Manage</b> the Unclaimed and Claimed columns power the campaigns block.</li>
+        <li>
+<b>Budgets</b> the top 5 by spend prevents opening the section just to review five rows.</li>
+        <li>
+<b>Export to Excel</b> appears on all 20 screens, so the action moves into the dashboard header.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>What is removed or consolidated</h3>
+      <ul>
+        <li>
+<b>Quick Actions</b> five buttons that duplicate the left navigation only 200px away.</li>
+        <li>
+<b>Recently Shipped Orders</b> duplicates the Shipped tab in the activity feed.</li>
+        <li>
+<b>The chart color selector</b> and eye icons on alerts are controls without a function.</li>
+        <li>
+<b>Redemption Dashboard</b>, <b>Delivery Reports</b> and <b>CRM Activity</b> a page with four links, a copy of Orders, and a Coming soon placeholder.</li>
+        <li>
+<b>Eight inventory screens</b> are consolidated into Inventory with tabs and a shared filter.</li>
+        <li>
+<b>Store Credit and Create Credit Claims</b> move under Budgets &amp; Credit because they belong to the same financial workflow.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Data discrepancies on the site</h3>
+      <ul>
+        <li>The Orders status total is 30+70+8+261+4+8 = 381, while the All tab shows 392.</li>
+        <li>The dashboard shows 354 orders for July 27–August 26, while Orders shows 392 for the same range.</li>
+        <li>Orders worth $0.00 are either redemptions or errors and need a data label.</li>
+        <li>One entry is duplicated in the activity feed (#30436499 appears twice).</li>
+        <li>Budgets include Amount Spent but no limit.</li>
+        <li>Store Credit: limits and balances are zero for almost everyone.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>What the ° symbol means</h3>
+      <ul>
+        <li>Previous-period deltas and sparklines: period comparisons are not currently calculated.</li>
+        <li>The dotted previous-period line on the chart requires the same API support.</li>
+        <li>Age of the oldest order on hold: the Ordered Date field exists, but the value is not displayed.</li>
+        <li>Weeks of stock by SKU: derived from Average Sold Per Week and Quantity On Hand.</li>
+        <li>Dashboard backorder count: it is missing from the response and must come from Backordered Items.</li>
+        <li>Figures for periods other than 30 days are illustrative.</li>
+        <li>Inventory receipt quantity and customer registration timing in the mixed activity feed are illustrative.</li>
+      </ul>
+    </section>
+    <section class="full">
+      <h3>Grid and charts</h3>
+      <ul>
+        <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24–32px.</li>
+        <li>The primary row uses a compact 5/7 split: Order status on the left; Trends and Top products on the right with their internal 8/4 split. Recent activity then spans all 12 columns.</li>
+        <li>At 1440×900, the first screenful prioritizes actions, order distribution, and the client-priority sales trend. The event feed begins immediately below.</li>
+        <li>There is one full-size chart. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
+        <li>There are no pie charts or secondary axes; multi-series comparisons belong in Reports.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+</div>
+<script>
+(() => {
+  const chartPeriods = {
+    "r-l30": {
+      key: "l30", label: "Last 30 days", title: "Daily sales", max: 12000, verified: true,
+      axis: ["07-27", "08-04", "08-12", "08-18", "08-26"],
+      labels: ["Jul 27", "Jul 29", "Jul 31", "Aug 2", "Aug 4", "Aug 6", "Aug 8", "Aug 10", "Aug 12", "Aug 14", "Aug 16", "Aug 18", "Aug 20", "Aug 22", "Aug 24", "Aug 26"],
+      currentY: [118.5,25.6,142.3,133.3,94.7,104.9,121.9,112.9,92.5,146.9,125.3,136.7,118.5,109.5,124.2,115.1],
+      previousY: [114,100.4,118.5,110.6,103.8,114,119.7,116.3,107.2,120.8,118.5,123.1,115.1,118.5,120.8,121.9]
+    },
+    "r-mtd": {
+      key: "mtd", label: "Month to date", title: "Daily sales · month to date", max: 9000, verified: false,
+      axis: ["08-01", "08-08", "08-14", "08-20", "08-26"],
+      labels: ["Aug 1", "Aug 3", "Aug 5", "Aug 7", "Aug 9", "Aug 11", "Aug 13", "Aug 14", "Aug 16", "Aug 18", "Aug 20", "Aug 21", "Aug 23", "Aug 24", "Aug 25", "Aug 26"],
+      currentY: [123.6,46.8,143.3,135.8,104,112.4,126.5,119,102.1,147.1,129.3,138.6,123.6,116.1,128.3,120.8],
+      previousY: [119.9,108.7,123.6,117.1,111.5,119.9,124.6,121.8,114.3,125.5,123.6,127.4,120.8,123.6,125.5,126.5]
+    },
+    "r-ytd": {
+      key: "ytd", label: "Year to date", title: "Biweekly sales · year to date", max: 90000, verified: false,
+      axis: ["Jan", "Mar", "May", "Jul", "Aug"],
+      labels: ["Jan 1", "Jan 17", "Feb 2", "Feb 18", "Mar 6", "Mar 22", "Apr 7", "Apr 23", "May 9", "May 25", "Jun 10", "Jun 26", "Jul 12", "Jul 28", "Aug 12", "Aug 26"],
+      currentY: [122.9,43.6,143.2,135.4,102.5,111.2,125.8,118,100.6,147,128.7,138.3,122.9,115.1,127.7,120],
+      previousY: [119,107.4,122.9,116.1,110.3,119,123.8,120.9,113.2,124.8,122.9,126.7,120,122.9,124.8,125.8]
+    },
+    "r-l12": {
+      key: "l12", label: "Last 12 months", title: "Sales trend · last 12 months", max: 120000, verified: false,
+      axis: ["Sep ’25", "Dec ’25", "Mar ’26", "Jun ’26", "Aug ’26"],
+      labels: ["Sep 1, 2025", "Sep 25", "Oct 19", "Nov 12", "Dec 6", "Dec 30", "Jan 23, 2026", "Feb 16", "Mar 12", "Apr 5", "Apr 29", "May 23", "Jun 16", "Jul 10", "Aug 3", "Aug 26"],
+      currentY: [121.2,36.6,142.8,134.6,99.5,108.8,124.3,116,97.5,147,127.4,137.7,121.2,112.9,126.3,118.1],
+      previousY: [117.1,104.7,121.2,114,107.8,117.1,122.2,119.1,110.9,123.2,121.2,125.3,118.1,121.2,123.2,124.3]
+    }
+  };
+
+  const rangeInputs = [...document.querySelectorAll('input[name="rng"]')];
+  const currentPeriod = () => chartPeriods[rangeInputs.find(input => input.checked)?.id || "r-l12"];
+  const money = new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", maximumFractionDigits: 0});
+  const amountFromY = (y, max) => Math.max(0, Math.round(((148 - y) / 136 * max) / 100) * 100);
+  const svgNS = "http://www.w3.org/2000/svg";
+
+  const hoverTip = document.createElement("div");
+  hoverTip.className = "hovertip";
+  hoverTip.setAttribute("role", "tooltip");
+  document.querySelector(".wrap")?.append(hoverTip);
+  const placeHoverTip = (x, y) => {
+    const left = Math.min(Math.max(12, x + 14), window.innerWidth - hoverTip.offsetWidth - 12);
+    const top = Math.min(Math.max(12, y + 14), window.innerHeight - hoverTip.offsetHeight - 12);
+    hoverTip.style.left = `${left}px`;
+    hoverTip.style.top = `${top}px`;
+  };
+  document.addEventListener("pointerover", event => {
+    const target = event.target.closest("[data-tip]");
+    if (!target) return;
+    hoverTip.textContent = target.dataset.tip;
+    hoverTip.classList.add("on");
+    placeHoverTip(event.clientX, event.clientY);
+  });
+  document.addEventListener("pointermove", event => {
+    if (hoverTip.classList.contains("on")) placeHoverTip(event.clientX, event.clientY);
+  });
+  document.addEventListener("pointerout", event => {
+    const target = event.target.closest("[data-tip]");
+    if (target && !target.contains(event.relatedTarget)) hoverTip.classList.remove("on");
+  });
+  document.addEventListener("focusin", event => {
+    const target = event.target.closest("[data-tip]");
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    hoverTip.textContent = target.dataset.tip;
+    hoverTip.classList.add("on");
+    placeHoverTip(rect.left + rect.width / 2, rect.bottom);
+  });
+  document.addEventListener("focusout", event => {
+    if (event.target.closest("[data-tip]")) hoverTip.classList.remove("on");
+  });
+
+  const chartCard = document.querySelector(".home-trends .grid > .card:first-child");
+  chartCard?.classList.add("chartcard");
+  const chartTitle = chartCard?.querySelector("h4");
+  const chartTip = document.createElement("div");
+  chartTip.className = "charttip";
+  chartTip.setAttribute("role", "status");
+  chartCard?.append(chartTip);
+
+  Object.values(chartPeriods).forEach(period => {
+    const svg = document.querySelector(`.home-trends .rv-${period.key} .chart`);
+    if (!svg) return;
+    svg.tabIndex = 0;
+    svg.setAttribute("aria-label", `${period.title}. Move across the chart or use the arrow keys for values.`);
+    const axis = [...svg.querySelectorAll('text[y="168"]')];
+    axis.forEach((node, index) => { if (period.axis[index]) node.textContent = period.axis[index]; });
+
+    const overlay = document.createElementNS(svgNS, "g");
+    overlay.setAttribute("class", "chartoverlay");
+    overlay.style.display = "none";
+    const crosshair = document.createElementNS(svgNS, "line");
+    crosshair.setAttribute("y1", "12"); crosshair.setAttribute("y2", "148");
+    crosshair.setAttribute("stroke", "var(--muted)"); crosshair.setAttribute("stroke-width", "1");
+    crosshair.setAttribute("stroke-dasharray", "3 3");
+    const previousPoint = document.createElementNS(svgNS, "circle");
+    previousPoint.setAttribute("r", "3"); previousPoint.setAttribute("fill", "var(--surface)");
+    previousPoint.setAttribute("stroke", "var(--muted)"); previousPoint.setAttribute("stroke-width", "1.5");
+    const currentPoint = document.createElementNS(svgNS, "circle");
+    currentPoint.setAttribute("r", "4"); currentPoint.setAttribute("fill", "var(--ink)");
+    currentPoint.setAttribute("stroke", "var(--surface)"); currentPoint.setAttribute("stroke-width", "2");
+    overlay.append(crosshair, previousPoint, currentPoint);
+    svg.append(overlay);
+    let activeIndex = period.labels.length - 1;
+
+    const showPoint = index => {
+      activeIndex = Math.max(0, Math.min(period.labels.length - 1, index));
+      const x = 44 + activeIndex * (548 / (period.labels.length - 1));
+      const currentY = period.currentY[activeIndex];
+      const previousY = period.previousY[activeIndex];
+      crosshair.setAttribute("x1", x); crosshair.setAttribute("x2", x);
+      currentPoint.setAttribute("cx", x); currentPoint.setAttribute("cy", currentY);
+      previousPoint.setAttribute("cx", x); previousPoint.setAttribute("cy", previousY);
+      overlay.style.display = "block";
+      const mark = period.verified ? "" : "°";
+      chartTip.innerHTML = `<strong>${period.labels[activeIndex]}</strong><span>Current: <b>${money.format(amountFromY(currentY, period.max))}${mark}</b></span><span>Previous: <b>${money.format(amountFromY(previousY, period.max))}°</b></span>`;
+      const svgRect = svg.getBoundingClientRect();
+      const cardRect = chartCard.getBoundingClientRect();
+      const left = svgRect.left - cardRect.left + (x / 600) * svgRect.width;
+      const top = svgRect.top - cardRect.top + (Math.min(currentY, previousY) / 175) * svgRect.height - 8;
+      chartTip.style.left = `${Math.min(Math.max(92, left), cardRect.width - 92)}px`;
+      chartTip.style.top = `${Math.max(52, top)}px`;
+      chartTip.classList.add("on");
+    };
+    const hidePoint = () => { overlay.style.display = "none"; chartTip.classList.remove("on"); };
+    svg.addEventListener("pointermove", event => {
+      const rect = svg.getBoundingClientRect();
+      const viewX = (event.clientX - rect.left) / rect.width * 600;
+      showPoint(Math.round((viewX - 44) / (548 / (period.labels.length - 1))));
+    });
+    svg.addEventListener("pointerleave", () => { if (document.activeElement !== svg) hidePoint(); });
+    svg.addEventListener("focus", () => showPoint(activeIndex));
+    svg.addEventListener("blur", hidePoint);
+    svg.addEventListener("keydown", event => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      showPoint(activeIndex + (event.key === "ArrowRight" ? 1 : -1));
+    });
+  });
+
+  const live = document.createElement("span");
+  live.className = "sr-only";
+  live.setAttribute("aria-live", "polite");
+  document.querySelector(".top")?.append(live);
+
+  const updatePeriod = () => {
+    const period = currentPeriod();
+    if (chartTitle) chartTitle.textContent = period.title;
+    document.querySelectorAll(".opsstatus .seg").forEach(segment => {
+      const label = segment.querySelector(".segc")?.textContent.trim();
+      const value = segment.querySelector(`.segv .rv-${period.key}`)?.textContent.trim() || segment.querySelector(".segv")?.textContent.trim();
+      segment.dataset.tip = `${label}: ${value} orders in ${period.label}. Fixed summary; activity filters do not change this card.`;
+      segment.tabIndex = 0;
+    });
+    document.querySelectorAll(".opsstatus .stack > span").forEach(segment => {
+      const share = segment.querySelector(`.rv-${period.key}`)?.textContent.trim();
+      const label = segment.getAttribute("title");
+      if (share) segment.dataset.tip = `${label}: ${share} of orders in ${period.label}.`;
+      segment.tabIndex = 0;
+    });
+    document.querySelectorAll(".home-metrics .kpi-link").forEach(card => {
+      if (!card.dataset.baseTip) card.dataset.baseTip = card.dataset.tip;
+      const value = card.querySelector(`.v .rv-${period.key}`)?.textContent.trim() || card.querySelector(".v")?.textContent.trim();
+      card.dataset.tip = `${card.dataset.metric}: ${value}. ${card.dataset.baseTip}`;
+    });
+    chartTip.classList.remove("on");
+    document.querySelectorAll(".chartoverlay").forEach(node => { node.style.display = "none"; });
+    live.textContent = `Dashboard updated for ${period.label}.`;
+  };
+  rangeInputs.forEach(input => input.addEventListener("change", updatePeriod));
+
+  const setPanelValue = (panel, field, value) => {
+    const node = panel?.querySelector(`[data-field="${field}"]`);
+    if (node && value) node.textContent = value;
+  };
+  document.querySelectorAll('.scr[data-k="home"] label.li[for="p-item"],.scr[data-k="home"] label.li[for="p-cust"],.scr[data-k="home"] label.li[for="p-budg"],.scr[data-k="home"] label.li[for="p-camp"]').forEach(row => {
+    const name = row.querySelector(".n")?.textContent.trim();
+    row.setAttribute("aria-label", `Open details for ${name}`);
+    row.addEventListener("click", () => {
+      const key = row.getAttribute("for").slice(2);
+      const panel = document.querySelector(`.pn[data-p="${key}"]`);
+      setPanelValue(panel, "title", name);
+      setPanelValue(panel, "amount", row.querySelector(".v")?.textContent.trim());
+      setPanelValue(panel, "rank", `#${row.querySelector(".i")?.textContent.trim()}`);
+    });
+  });
+  document.querySelectorAll('.scr[data-k="home"] .activityrows label.li[for="p-order"]').forEach(row => {
+    const title = row.querySelector(".n")?.textContent.trim();
+    row.setAttribute("aria-label", `Open ${title}`);
+    row.addEventListener("click", () => {
+      const panel = document.querySelector('.pn[data-p="order"]');
+      setPanelValue(panel, "title", title);
+      setPanelValue(panel, "status", row.querySelector(".st2")?.textContent.trim());
+      setPanelValue(panel, "amount", row.querySelector(".am")?.textContent.trim());
+      setPanelValue(panel, "updated", row.querySelector(".tm")?.textContent.trim());
+    });
+  });
+  document.querySelectorAll('.scr[data-k="home"] .actionbar,.scr[data-k="home"] .kpi-link,.scr[data-k="home"] label.li,.scr[data-k="home"] .allbtn').forEach(control => {
+    control.tabIndex = 0;
+    control.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      control.click();
+    });
+  });
+  updatePeriod();
+})();
+</script>
+</body>
+</html>
