@@ -86,7 +86,13 @@
   .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
     background:var(--ink);transition:transform .16s ease,background .16s ease}
   .hints{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
-  .variantlink{font-size:13px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+  .versionswitch{display:grid;grid-template-columns:repeat(2,auto);border:1px solid var(--line);background:var(--ground)}
+  .versionswitch a{min-height:30px;padding:0 12px;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}
+  .versionswitch a+a{border-left:1px solid var(--line)}
+  .versionswitch a:hover{background:var(--surface-2);color:var(--ink)}
+  .versionswitch a:focus-visible{position:relative;z-index:1;outline:2px solid var(--ink);outline-offset:2px}
+  .versionswitch a[aria-current="page"]{background:var(--ink);color:var(--ground)}
   label[for="notes"] .sw{background:var(--ink);border-color:var(--ink)}
   label[for="notes"] .sw::after{transform:translateX(18px);background:var(--ground)}
   #notes:checked ~ .wrap label[for="notes"] .sw{background:var(--surface-2);border-color:var(--line)}
@@ -513,7 +519,10 @@
 <p>A priority-led alternative: urgent work remains at the top, followed by a full-width operational grid. Order status uses one quarter of the first row, giving the client-priority Sales trend the remaining three quarters; Top products and Recent activity share the second row equally. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
 </div>
 <div class="hints">
-<a class="variantlink" href="/work/cogginspromo/">← Open Version 1</a>
+<nav class="versionswitch" aria-label="Dashboard version">
+<a href="../">Version 1</a>
+<a href="./" aria-current="page">Version 2</a>
+</nav>
 <label class="hint" for="notes">
 <span class="sw">
 </span>
