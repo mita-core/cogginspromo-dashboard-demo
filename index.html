@@ -196,7 +196,6 @@
   .home-trends{order:1}
   .home-metrics{order:2}
   .home-context{order:3}
-  .scr[data-k="home"] > .fold{order:5}
   .scr[data-k="home"] > .note:not(.revisionnote){order:6}
   .scr[data-k="home"] > .revisionnote{order:0}
 
@@ -282,8 +281,6 @@
   .fr .tm{text-align:right;color:var(--muted)}
   .allbtn{display:block;border:1px solid var(--line);background:var(--ground);padding:8px;font-size:13px;text-align:center;margin-top:10px}
   .allbtn:hover{background:var(--surface-2)}
-  .fold{border-top:1px dashed var(--ink);margin:24px 0 8px;position:relative}
-  .fold span{position:absolute;top:-9px;left:0;background:var(--paper);padding-right:10px;font-size:11.5px;color:var(--muted)}
   .fnote::after{content:"orders + inventory + customers";font-size:12px;color:var(--muted)}
 
   .scr h2{margin:0 0 3px;font-size:20px;font-weight:700}
@@ -1227,9 +1224,6 @@
 </div>
 </div>
 <div class="note">Budgets and campaigns are currently visible only inside their respective sections. The five visible campaign rows total 56 unclaimed items, while the source summary reports 54; the demo keeps the row-level values and flags the source discrepancy rather than silently changing them.</div>
-</div>
-<div class="fold">
-<span>below the fold · 1440×900</span>
 </div>
 <div class="note">The dashboard keeps the screenshot's original reading order: trends, period metrics, and commercial context. Order status and Recent activity remain lower on the page, but now sit together as one connected operational area.</div>
 </section>
@@ -3862,7 +3856,7 @@
       <ul>
         <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24 to 32px.</li>
         <li>Trends use an 8/4 split; Period metrics use four columns; customer context uses three columns; Order status and Recent activity are stacked full width.</li>
-        <li>At 1440×900, the first screenful preserves the screenshot's commercial overview, with the connected operations row below it.</li>
+        <li>The initial screen preserves the screenshot's commercial overview, with the connected operations row below it.</li>
         <li>There is one full-size chart. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
         <li>There are no pie charts or secondary axes; multi-series comparisons belong in Reports.</li>
       </ul>
