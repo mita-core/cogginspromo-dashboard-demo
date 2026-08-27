@@ -257,8 +257,27 @@
   .kpi .v{font-size:24px;font-weight:700;margin-top:2px;line-height:1.15}
   .kpi .d{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-soft);margin-top:8px;padding-top:6px}
   .spark{display:block;width:100%;height:24px;margin-top:6px}
-  .chart{display:block;width:100%;height:auto}
-  .chartcard{position:relative}
+  .chart{display:block;width:980px;max-width:none;height:auto}
+  .chartcard{position:relative;min-width:0}
+  .charthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .card .charthead h4{margin:0}
+  .chartactions{display:flex;gap:4px;flex:none}
+  .chartaction{width:30px;height:30px;padding:0;border:1px solid var(--line);background:var(--ground);color:var(--ink);
+    display:grid;place-items:center;cursor:pointer}
+  .chartaction:hover,.chartaction:focus-visible{background:var(--surface-2);outline:none;border-color:var(--ink)}
+  .chartaction svg{display:block;width:20px;height:20px}
+  .chartviewport{overflow-x:auto;overflow-y:hidden;scrollbar-gutter:stable;scroll-behavior:smooth;overscroll-behavior-inline:contain}
+  .chartviewport>.rv{display:block;width:max-content}
+  .chartbar-current{fill:var(--ink)}
+  .chartbar-previous{fill:var(--fill);stroke:var(--muted);stroke-width:1}
+  .chartfocus{fill:var(--surface-2);opacity:.72}
+  body.chart-expanded{overflow:hidden}
+  .chartcard.is-expanded{position:fixed;inset:0;z-index:100;background:var(--ground);border:0;padding:24px;
+    display:flex;flex-direction:column}
+  .chartcard.is-expanded .chartviewport{flex:1;min-height:0}
+  .chartcard.is-expanded .chart{width:max(100%,1400px)}
+  .chartcard.is-expanded .expand-open{display:none}
+  .chartcard:not(.is-expanded) .expand-close{display:none}
   .chart[tabindex="0"]{cursor:default;outline:none}
   .chart[tabindex="0"]:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
   .chartoverlay{pointer-events:none}
@@ -282,6 +301,8 @@
   .cl{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:6px}
   .cl i{display:inline-block;width:16px;border-top:2px solid var(--ink);margin-right:6px;vertical-align:middle}
   .cl i.d{border-top:1.5px dashed var(--muted)}
+  .chartcard .cl i{width:10px;height:10px;border:1px solid var(--ink);background:var(--ink);margin-right:6px;vertical-align:-1px}
+  .chartcard .cl i.d{border:1px solid var(--muted);background:var(--fill)}
 
   .li{display:grid;grid-template-columns:16px minmax(0,1fr) 72px 96px;gap:12px;align-items:center;
     padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
@@ -948,7 +969,28 @@
 </div>
 <div class="grid g83">
 <div class="card">
+<div class="charthead">
 <h4>Daily sales</h4>
+<div class="chartactions" aria-label="Sales chart controls">
+<button class="chartaction" type="button" data-chart-scroll="-1" aria-label="Scroll chart left" title="Scroll chart left">
+<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M12.5 5 7.5 10l5 5"/>
+</svg>
+</button>
+<button class="chartaction" type="button" data-chart-scroll="1" aria-label="Scroll chart right" title="Scroll chart right">
+<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m7.5 5 5 5-5 5"/>
+</svg>
+</button>
+<button class="chartaction chartexpand" type="button" aria-label="Expand sales chart to full screen" aria-expanded="false" title="Expand chart">
+<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<g class="expand-open"><path d="M7.5 3.5h-4v4M12.5 3.5h4v4M7.5 16.5h-4v-4M12.5 16.5h4v-4"/><path d="m3.5 7.5 4-4m9 4-4-4m-9 9 4 4m9-4-4 4"/></g>
+<g class="expand-close"><path d="M7.5 3.5v4h-4M12.5 3.5v4h4M7.5 16.5v-4h-4M12.5 16.5v-4h4"/><path d="m7.5 7.5-4-4m9 4 4-4m-9 9-4 4m9-4 4 4"/></g>
+</svg>
+</button>
+</div>
+</div>
+<div class="chartviewport" tabindex="0" aria-label="Scrollable sales chart">
 <span class="rv rv-l30">
 <svg class="chart" viewBox="0 0 600 175" role="img" aria-label="Daily sales">
 <line x1="44" y1="148.0" x2="592" y2="148.0" stroke="var(--line-soft)" stroke-width="1"/>
@@ -1037,6 +1079,7 @@
 <text x="592.0" y="168" fill="var(--muted)" font-size="10" text-anchor="end">08-26</text>
 </svg>
 </span>
+</div>
 <div class="cl">
 <span>
 <i>
@@ -1047,7 +1090,7 @@
 </div>
 </div>
 </div>
-<div class="note">The chart supports pointer hover and keyboard arrows: a crosshair and tooltip report the date, current value, and previous-period value. The title and date axis follow the selected period. Values for periods other than 30 days and all previous-period values remain marked ° because the backend does not currently calculate them. Top products is a 12-month dashboard snapshot; every row opens a panel populated from the selected row.</div>
+<div class="note">The grouped bar chart compares the current and previous periods at every date. It scrolls horizontally by trackpad, scrollbar, arrow controls, or keyboard; pointer hover and keyboard arrows expose exact values in a tooltip. The expand control opens the chart on the full screen, and Escape closes it. Values for periods other than 30 days and all previous-period values remain marked ° because the backend does not currently calculate them.</div>
 </div>
 <div class="zone home-products">
 <div class="zhead">
@@ -3767,7 +3810,7 @@
         <li>
 <b>Period</b> in the header synchronizes the chart title and date axis, Period metrics, Order status, status share, and Action required counters. Point-in-time values remain stable by design.</li>
         <li>
-<b>The sales chart</b> supports pointer hover and keyboard arrows. Its crosshair and tooltip expose the date, current value, and previous-period value for every plotted point.</li>
+<b>The sales chart</b> uses paired current/previous bars. It scrolls horizontally with direct controls, pointer hover and keyboard arrows expose exact values, and the expand icon opens a full-screen chart that closes with Escape.</li>
         <li>
 <b>Period metric cards</b> show a contextual tooltip on hover or focus and open the section that owns the metric: Orders, Inventory, or Customers.</li>
         <li>
@@ -3895,7 +3938,7 @@
         <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24–32px.</li>
         <li>The priority area uses a full-width 2×2 grid with equal columns: Order status and Sales trend above; Top products and Recent activity below.</li>
         <li>At 1440×900, the first screenful keeps all four priority views visible and balanced. Period metrics and commercial context begin below the grid.</li>
-        <li>There is one full-size chart. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
+        <li>There is one full-size grouped bar chart with horizontal navigation and a full-screen mode. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
         <li>There are no pie charts or secondary axes; multi-series comparisons belong in Reports.</li>
       </ul>
     </section>
@@ -3985,64 +4028,127 @@
   chartTip.setAttribute("role", "status");
   chartCard?.append(chartTip);
 
+  const chartViewport = chartCard?.querySelector(".chartviewport");
+  const chartExpandButton = chartCard?.querySelector(".chartexpand");
+  const chartWidth = 980;
+  const chartHeight = 230;
+  const plotLeft = 58;
+  const plotRight = 18;
+  const plotTop = 16;
+  const plotBottom = 190;
+  const plotHeight = plotBottom - plotTop;
+  const plotWidth = chartWidth - plotLeft - plotRight;
+  const svgNode = (name, attributes = {}, content = "") => {
+    const node = document.createElementNS(svgNS, name);
+    Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
+    if (content) node.textContent = content;
+    return node;
+  };
+  const axisMoney = value => value === 0 ? "$0" : `$${Number.isInteger(value / 1000) ? value / 1000 : (value / 1000).toFixed(1)}k`;
+  const shortDate = value => value.replace(/, 20\d\d$/, "");
+
   Object.values(chartPeriods).forEach(period => {
     const svg = document.querySelector(`.home-trends .rv-${period.key} .chart`);
     if (!svg) return;
+    svg.replaceChildren();
+    svg.setAttribute("viewBox", `0 0 ${chartWidth} ${chartHeight}`);
     svg.tabIndex = 0;
-    svg.setAttribute("aria-label", `${period.title}. Move across the chart or use the arrow keys for values.`);
-    const axis = [...svg.querySelectorAll('text[y="168"]')];
-    axis.forEach((node, index) => { if (period.axis[index]) node.textContent = period.axis[index]; });
+    svg.setAttribute("aria-label", `${period.title}. Grouped bars compare the current and previous periods. Scroll horizontally or use the arrow keys for values.`);
 
-    const overlay = document.createElementNS(svgNS, "g");
-    overlay.setAttribute("class", "chartoverlay");
-    overlay.style.display = "none";
-    const crosshair = document.createElementNS(svgNS, "line");
-    crosshair.setAttribute("y1", "12"); crosshair.setAttribute("y2", "148");
-    crosshair.setAttribute("stroke", "var(--muted)"); crosshair.setAttribute("stroke-width", "1");
-    crosshair.setAttribute("stroke-dasharray", "3 3");
-    const previousPoint = document.createElementNS(svgNS, "circle");
-    previousPoint.setAttribute("r", "3"); previousPoint.setAttribute("fill", "var(--surface)");
-    previousPoint.setAttribute("stroke", "var(--muted)"); previousPoint.setAttribute("stroke-width", "1.5");
-    const currentPoint = document.createElementNS(svgNS, "circle");
-    currentPoint.setAttribute("r", "4"); currentPoint.setAttribute("fill", "var(--ink)");
-    currentPoint.setAttribute("stroke", "var(--surface)"); currentPoint.setAttribute("stroke-width", "2");
-    overlay.append(crosshair, previousPoint, currentPoint);
-    svg.append(overlay);
+    [0, 1 / 3, 2 / 3, 1].forEach(ratio => {
+      const y = plotBottom - ratio * plotHeight;
+      svg.append(
+        svgNode("line", {x1:plotLeft, y1:y, x2:chartWidth - plotRight, y2:y, stroke:"var(--line-soft)", "stroke-width":"1"}),
+        svgNode("text", {x:"0", y:y + 3, fill:"var(--muted)", "font-size":"10"}, axisMoney(Math.round(period.max * ratio)))
+      );
+    });
+
+    const step = plotWidth / period.labels.length;
+    const barWidth = Math.min(18, step * .3);
+    const barGap = 4;
+    const focusBand = svgNode("rect", {class:"chartfocus chartoverlay", x:plotLeft, y:plotTop, width:step - 2, height:plotHeight});
+    focusBand.style.display = "none";
+    svg.append(focusBand);
+
+    const currentValues = period.currentY.map(y => amountFromY(y, period.max));
+    const previousValues = period.previousY.map(y => amountFromY(y, period.max));
+    period.labels.forEach((label, index) => {
+      const center = plotLeft + step * index + step / 2;
+      const currentHeight = Math.max(1, currentValues[index] / period.max * plotHeight);
+      const previousHeight = Math.max(1, previousValues[index] / period.max * plotHeight);
+      const currentBar = svgNode("rect", {
+        class:"chartbar-current", x:center - barGap / 2 - barWidth, y:plotBottom - currentHeight,
+        width:barWidth, height:currentHeight, "data-index":index
+      });
+      const previousBar = svgNode("rect", {
+        class:"chartbar-previous", x:center + barGap / 2, y:plotBottom - previousHeight,
+        width:barWidth, height:previousHeight, "data-index":index
+      });
+      const title = svgNode("title", {}, `${label}: current ${money.format(currentValues[index])}; previous ${money.format(previousValues[index])}`);
+      currentBar.append(title);
+      svg.append(
+        currentBar,
+        previousBar,
+        svgNode("text", {x:center, y:"211", fill:"var(--muted)", "font-size":"9.5", "text-anchor":"middle"}, shortDate(label))
+      );
+    });
+
     let activeIndex = period.labels.length - 1;
-
-    const showPoint = index => {
+    const showPoint = (index, ensureVisible = false) => {
       activeIndex = Math.max(0, Math.min(period.labels.length - 1, index));
-      const x = 44 + activeIndex * (548 / (period.labels.length - 1));
-      const currentY = period.currentY[activeIndex];
-      const previousY = period.previousY[activeIndex];
-      crosshair.setAttribute("x1", x); crosshair.setAttribute("x2", x);
-      currentPoint.setAttribute("cx", x); currentPoint.setAttribute("cy", currentY);
-      previousPoint.setAttribute("cx", x); previousPoint.setAttribute("cy", previousY);
-      overlay.style.display = "block";
+      const center = plotLeft + step * activeIndex + step / 2;
+      focusBand.setAttribute("x", plotLeft + step * activeIndex + 1);
+      focusBand.style.display = "block";
       const mark = period.verified ? "" : "°";
-      chartTip.innerHTML = `<strong>${period.labels[activeIndex]}</strong><span>Current: <b>${money.format(amountFromY(currentY, period.max))}${mark}</b></span><span>Previous: <b>${money.format(amountFromY(previousY, period.max))}°</b></span>`;
+      chartTip.innerHTML = `<strong>${period.labels[activeIndex]}</strong><span>Current: <b>${money.format(currentValues[activeIndex])}${mark}</b></span><span>Previous: <b>${money.format(previousValues[activeIndex])}°</b></span>`;
       const svgRect = svg.getBoundingClientRect();
       const cardRect = chartCard.getBoundingClientRect();
-      const left = svgRect.left - cardRect.left + (x / 600) * svgRect.width;
-      const top = svgRect.top - cardRect.top + (Math.min(currentY, previousY) / 175) * svgRect.height - 8;
+      const left = svgRect.left - cardRect.left + center / chartWidth * svgRect.width;
+      const peak = Math.max(currentValues[activeIndex], previousValues[activeIndex]);
+      const topY = plotBottom - peak / period.max * plotHeight;
+      const top = svgRect.top - cardRect.top + topY / chartHeight * svgRect.height - 8;
       chartTip.style.left = `${Math.min(Math.max(92, left), cardRect.width - 92)}px`;
-      chartTip.style.top = `${Math.max(52, top)}px`;
+      chartTip.style.top = `${Math.max(58, top)}px`;
       chartTip.classList.add("on");
+      if (ensureVisible && chartViewport) {
+        const scaledCenter = center / chartWidth * svg.clientWidth;
+        const target = scaledCenter - chartViewport.clientWidth / 2;
+        chartViewport.scrollTo({left:Math.max(0, target), behavior:"smooth"});
+      }
     };
-    const hidePoint = () => { overlay.style.display = "none"; chartTip.classList.remove("on"); };
+    const hidePoint = () => { focusBand.style.display = "none"; chartTip.classList.remove("on"); };
     svg.addEventListener("pointermove", event => {
       const rect = svg.getBoundingClientRect();
-      const viewX = (event.clientX - rect.left) / rect.width * 600;
-      showPoint(Math.round((viewX - 44) / (548 / (period.labels.length - 1))));
+      const viewX = (event.clientX - rect.left) / rect.width * chartWidth;
+      showPoint(Math.floor((viewX - plotLeft) / step));
     });
     svg.addEventListener("pointerleave", () => { if (document.activeElement !== svg) hidePoint(); });
-    svg.addEventListener("focus", () => showPoint(activeIndex));
+    svg.addEventListener("focus", () => showPoint(activeIndex, true));
     svg.addEventListener("blur", hidePoint);
     svg.addEventListener("keydown", event => {
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault();
-      showPoint(activeIndex + (event.key === "ArrowRight" ? 1 : -1));
+      showPoint(activeIndex + (event.key === "ArrowRight" ? 1 : -1), true);
     });
+  });
+
+  chartCard?.querySelectorAll("[data-chart-scroll]").forEach(button => {
+    button.addEventListener("click", () => {
+      const direction = Number(button.dataset.chartScroll);
+      chartViewport?.scrollBy({left:direction * Math.max(280, chartViewport.clientWidth * .72), behavior:"smooth"});
+    });
+  });
+  const setChartExpanded = expanded => {
+    chartCard?.classList.toggle("is-expanded", expanded);
+    document.body.classList.toggle("chart-expanded", expanded);
+    chartExpandButton?.setAttribute("aria-expanded", String(expanded));
+    chartExpandButton?.setAttribute("aria-label", expanded ? "Close full-screen sales chart" : "Expand sales chart to full screen");
+    chartExpandButton?.setAttribute("title", expanded ? "Close full screen" : "Expand chart");
+    chartTip.classList.remove("on");
+  };
+  chartExpandButton?.addEventListener("click", () => setChartExpanded(!chartCard.classList.contains("is-expanded")));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && chartCard?.classList.contains("is-expanded")) setChartExpanded(false);
   });
 
   const live = document.createElement("span");
