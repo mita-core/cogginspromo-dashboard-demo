@@ -462,7 +462,7 @@
 <div class="head">
 <div>
 <h1>Achilles Dashboard Demo</h1>
-<p>A clickable black-and-white structure for the dashboard home. Period controls, tasks, activity filters, lists, sections, and panels are interactive; Order status is intentionally read-only. Turn on notes to review the client feedback and the decisions made from it. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
+<p>Baseline dashboard structure with interactive periods, charts, lists, and panels. Order status is read-only; Recent activity filters in place. Turn on notes to review client feedback and decisions.</p>
 </div>
 <div class="hints">
 <nav class="versionswitch" aria-label="Dashboard version">
@@ -596,7 +596,7 @@
 <li><q>I removed Action Required, but I do think we should have that included in some way. Just wonder if there is another option. Maybe we call that out at the top of the dashboard and it takes you to another page?</q> The removed task block became a compact top callout that opens a dedicated Action center.</li>
 <li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> The two blocks now form one operational area. Order status is a fixed summary; only the Recent activity tabs filter content.</li>
 <li><q>The current activity feed also includes inventory receipts and customer registrations....looks like that was removed. Not really sure what is best but just pointing that out.</q> Those events were restored under All, while status tabs remain order-only.</li>
-<li><b>Interaction pass:</b> every Home block now has a defined role—charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
+<li><b>Interaction pass:</b> every Home block now has a defined role: charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
 </ul>
 </div>
 <div class="opsgrid">
@@ -731,7 +731,7 @@
 <b>
 </b>dark segments represent Exception and On hold, the only two statuses that require action</div>
 </div>
-<div class="note"><b>Fixed after review:</b> Order status is a period summary, not a control. Its cards no longer react when a Recent activity tab is selected, and they cannot move the page. The bar below shows each status as a share of all orders. Exception and On hold are emphasized because they require action. Total is an aggregate, so its column is separated. Verified on the site: 30+70+8+261+4+8 = 381, while the All tab shows 392—eleven orders are not assigned to any status.</div>
+<div class="note"><b>Fixed after review:</b> Order status is a period summary, not a control. Its cards no longer react when a Recent activity tab is selected, and they cannot move the page. The bar below shows each status as a share of all orders. Exception and On hold are emphasized because they require action. Total is an aggregate, so its column is separated. Verified on the site: 30+70+8+261+4+8 = 381, while the All tab shows 392; eleven orders are not assigned to any status.</div>
 </div>
 <div class="zone opszone opsactivity">
 <div class="zhead">
@@ -850,10 +850,10 @@
 <span class="zn">3</span>
 <span class="zt">Period metrics</span>
 <span class="zs">
-<span class="rv rv-l30">July 27 – August 26, 2026</span>
-<span class="rv rv-mtd">August 1–26, 2026</span>
-<span class="rv rv-ytd">January 1 – August 26, 2026</span>
-<span class="rv rv-l12">August 26, 2025 – August 26, 2026</span>
+<span class="rv rv-l30">July 27 to August 26, 2026</span>
+<span class="rv rv-mtd">August 1 to 26, 2026</span>
+<span class="rv rv-ytd">January 1 to August 26, 2026</span>
+<span class="rv rv-l12">August 26, 2025 to August 26, 2026</span>
 </span>
 </div>
 <div class="grid g4">
@@ -914,7 +914,7 @@
 <span class="rv rv-l12">+402</span> for the period</div>
 </label>
 </div>
-<div class="note">The four KPI cards are now interactive: Sales and Orders open Orders, Inventory value opens Inventory, and Users opens Customers. Hovering or focusing a card explains whether the number follows the selected period or is a point-in-time value. Verified: the dashboard shows 354 orders for July 27–August 26, while Orders shows 392 for the same range; the discrepancy remains visible instead of being hidden. Figures for periods other than 30 days are illustrative°.</div>
+<div class="note">The four KPI cards are now interactive: Sales and Orders open Orders, Inventory value opens Inventory, and Users opens Customers. Hovering or focusing a card explains whether the number follows the selected period or is a point-in-time value. Verified: the dashboard shows 354 orders for July 27 to August 26, while Orders shows 392 for the same range; the discrepancy remains visible instead of being hidden. Figures for periods other than 30 days are illustrative°.</div>
 </div>
 <div class="zone home-trends">
 <div class="zhead">
@@ -3791,7 +3791,7 @@
       <h3>Why this order</h3>
       <ul>
         <li><b>First:</b> the compact Action required callout keeps urgent work visible and provides one clear route to the Action center.</li>
-        <li><b>Then:</b> the screenshot's established commercial reading order remains intact—Trends, Period metrics, then Customers, budgets, campaigns.</li>
+        <li><b>Then:</b> the screenshot's established commercial reading order remains intact: Trends, Period metrics, then Customers, budgets, campaigns.</li>
         <li><b>After the commercial overview:</b> Order status and Recent activity are grouped as one full-width operational area. The summary appears immediately above the events it explains.</li>
         <li><b>Interaction boundary:</b> Order status stays read-only; only the tabs inside Recent activity change the feed. This prevents a summary card from being mistaken for a navigation control.</li>
         <li><b>Depth on demand:</b> the dashboard remains an index. Complete records live in their sections, while the Action center gives each urgent queue room to grow.</li>
@@ -3838,7 +3838,7 @@
       <h3>Data discrepancies on the site</h3>
       <ul>
         <li>The Orders status total is 30+70+8+261+4+8 = 381, while the All tab shows 392.</li>
-        <li>The dashboard shows 354 orders for July 27–August 26, while Orders shows 392 for the same range.</li>
+        <li>The dashboard shows 354 orders for July 27 to August 26, while Orders shows 392 for the same range.</li>
         <li>Orders worth $0.00 are either redemptions or errors and need a data label.</li>
         <li>One entry is duplicated in the activity feed (#30436499 appears twice).</li>
         <li>Budgets include Amount Spent but no limit.</li>
@@ -3860,7 +3860,7 @@
     <section class="full">
       <h3>Grid and charts</h3>
       <ul>
-        <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24–32px.</li>
+        <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24 to 32px.</li>
         <li>Trends use an 8/4 split; Period metrics use four columns; customer context uses three columns; Order status and Recent activity are stacked full width.</li>
         <li>At 1440×900, the first screenful preserves the screenshot's commercial overview, with the connected operations row below it.</li>
         <li>There is one full-size chart. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Achilles Dashboard Demo — Version 2</title>
+<title>Achilles Dashboard Demo | Version 2</title>
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff">
 <script>
@@ -515,8 +515,8 @@
 <div class="inner">
 <div class="head">
 <div>
-<h1>Achilles Dashboard Demo — Version 2</h1>
-<p>A priority-led alternative: urgent work remains at the top, followed by a full-width operational grid. Order status uses one quarter of the first row, giving the client-priority Sales trend the remaining three quarters; Top products and Recent activity share the second row equally. Order status remains read-only; only the activity tabs filter the feed. Turn on notes to review the client feedback and decisions. Data is from the live site as of August 26, 2026; values marked ° are hypotheses.</p>
+<h1>Achilles Dashboard Demo</h1>
+<p>Priority dashboard structure with interactive periods, charts, lists, and panels. Order status is read-only; Recent activity filters in place. Turn on notes to review client feedback and decisions.</p>
 </div>
 <div class="hints">
 <nav class="versionswitch" aria-label="Dashboard version">
@@ -650,7 +650,7 @@
 <li><q>I removed Action Required, but I do think we should have that included in some way. Just wonder if there is another option. Maybe we call that out at the top of the dashboard and it takes you to another page?</q> The removed task block became a compact top callout that opens a dedicated Action center.</li>
 <li><q>since order status and recent activity are connected I was thinking it might make sense to have those two things next to each other</q> The four priority blocks now form a two-row grid: compact Order status and expanded Sales trend above, Top products and Recent activity below. The first row uses a 25/75 split; the second remains 50/50.</li>
 <li><q>The current activity feed also includes inventory receipts and customer registrations....looks like that was removed. Not really sure what is best but just pointing that out.</q> Those events were restored under All, while status tabs remain order-only.</li>
-<li><b>Interaction pass:</b> every Home block now has a defined role—charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
+<li><b>Interaction pass:</b> every Home block now has a defined role: charts expose point values, KPI cards explain and navigate, list rows open row-specific details, and fixed summaries provide hover context without becoming filters.</li>
 </ul>
 </div>
 <div class="opsgrid">
@@ -785,7 +785,7 @@
 <b>
 </b>dark segments represent Exception and On hold, the only two statuses that require action</div>
 </div>
-<div class="note"><b>Fixed after review:</b> Order status is a period summary, not a control. Its cards no longer react when a Recent activity tab is selected, and they cannot move the page. The bar below shows each status as a share of all orders. Exception and On hold are emphasized because they require action. Total is an aggregate, so its column is separated. Verified on the site: 30+70+8+261+4+8 = 381, while the All tab shows 392—eleven orders are not assigned to any status.</div>
+<div class="note"><b>Fixed after review:</b> Order status is a period summary, not a control. Its cards no longer react when a Recent activity tab is selected, and they cannot move the page. The bar below shows each status as a share of all orders. Exception and On hold are emphasized because they require action. Total is an aggregate, so its column is separated. Verified on the site: 30+70+8+261+4+8 = 381, while the All tab shows 392; eleven orders are not assigned to any status.</div>
 </div>
 <div class="zone opszone opsactivity">
 <div class="zhead">
@@ -904,10 +904,10 @@
 <span class="zn">3</span>
 <span class="zt">Period metrics</span>
 <span class="zs">
-<span class="rv rv-l30">July 27 – August 26, 2026</span>
-<span class="rv rv-mtd">August 1–26, 2026</span>
-<span class="rv rv-ytd">January 1 – August 26, 2026</span>
-<span class="rv rv-l12">August 26, 2025 – August 26, 2026</span>
+<span class="rv rv-l30">July 27 to August 26, 2026</span>
+<span class="rv rv-mtd">August 1 to 26, 2026</span>
+<span class="rv rv-ytd">January 1 to August 26, 2026</span>
+<span class="rv rv-l12">August 26, 2025 to August 26, 2026</span>
 </span>
 </div>
 <div class="grid g4">
@@ -968,7 +968,7 @@
 <span class="rv rv-l12">+402</span> for the period</div>
 </label>
 </div>
-<div class="note">The four KPI cards are interactive and sit before Trends in Version 2: Sales and Orders open Orders, Inventory value opens Inventory, and Users opens Customers. Hovering or focusing a card explains whether the number follows the selected period or is a point-in-time value. Verified: the dashboard shows 354 orders for July 27–August 26, while Orders shows 392 for the same range; the discrepancy remains visible instead of being hidden. Figures for periods other than 30 days are illustrative°.</div>
+<div class="note">The four KPI cards are interactive and sit before Trends in Version 2: Sales and Orders open Orders, Inventory value opens Inventory, and Users opens Customers. Hovering or focusing a card explains whether the number follows the selected period or is a point-in-time value. Verified: the dashboard shows 354 orders for July 27 to August 26, while Orders shows 392 for the same range; the discrepancy remains visible instead of being hidden. Figures for periods other than 30 days are illustrative°.</div>
 </div>
 <div class="zone home-trends">
 <div class="zhead">
@@ -3922,7 +3922,7 @@
       <h3>Data discrepancies on the site</h3>
       <ul>
         <li>The Orders status total is 30+70+8+261+4+8 = 381, while the All tab shows 392.</li>
-        <li>The dashboard shows 354 orders for July 27–August 26, while Orders shows 392 for the same range.</li>
+        <li>The dashboard shows 354 orders for July 27 to August 26, while Orders shows 392 for the same range.</li>
         <li>Orders worth $0.00 are either redemptions or errors and need a data label.</li>
         <li>One entry is duplicated in the activity feed (#30436499 appears twice).</li>
         <li>Budgets include Amount Spent but no limit.</li>
@@ -3944,7 +3944,7 @@
     <section class="full">
       <h3>Grid and charts</h3>
       <ul>
-        <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24–32px.</li>
+        <li>Desktop: 12 columns, 24px gutters, an 8px vertical rhythm, and 16px card padding instead of the current 24 to 32px.</li>
         <li>The priority area uses a four-column grid: Order status spans one column and Sales trend spans three; Top products and Recent activity each span two columns below.</li>
         <li>At 1440×900, the first screenful prioritizes the interactive Sales trend while keeping the compact Order status and both secondary views visible. Period metrics and commercial context begin below the grid.</li>
         <li>There is one full-size grouped bar chart with horizontal navigation and a full-screen mode. Everything else uses a status bar, sparklines, and proportion bars in lists.</li>
